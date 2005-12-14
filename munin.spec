@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.4
-Release:   2%{?dist}
+Release:   3%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPL
 Group:     System Environment/Daemons
@@ -175,7 +175,7 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %{_datadir}/munin/munin-html
 %{_datadir}/munin/munin-limits
 %{_datadir}/munin/munin-update
-%{_libdir}/perl5/*perl/5.*/Munin.pm
+%{perl_vendorlib}/Munin.pm
 /var/www/html/munin/cgi/munin-cgi-graph
 %dir /etc/munin/templates
 %dir /etc/munin
@@ -222,6 +222,9 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Wed Dec 14 2005 Kevin Fenzi <kevin@tummy.com> - 1.2.4-3
+- Fixed libdir messup to allow builds on x86_64
+
 * Mon Dec 12 2005 Kevin Fenzi <kevin@tummy.com> - 1.2.4-2
 - Removed plugins that require Net-SNMP and Sybase 
 
