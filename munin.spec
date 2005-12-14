@@ -1,0 +1,229 @@
+Name:      munin
+Version:   1.2.4
+Release:   2%{?dist}
+Summary:   Network-wide graphing framework (grapher/gatherer)
+License:   GPL
+Group:     System Environment/Daemons
+URL:       http://munin.projects.linpro.no/
+
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+Source0: http://download.sourceforge.net/sourceforge/munin/%{name}_%{version}.tar.gz
+BuildArchitectures: noarch
+Provides: perl(RRDs)
+Requires: perl-HTML-Template
+Requires: perl-Net-Server
+Requires: rrdtool
+Requires: logrotate
+Requires(pre):		fedora-usermgmt >= 0.7
+Requires(postun):	fedora-usermgmt >= 0.7
+
+%description
+Munin is a highly flexible and powerful solution used to create graphs of
+virtually everything imaginable throughout your network, while still
+maintaining a rattling ease of installation and configuration.
+
+This package contains the grapher/gatherer. You will only need one instance of
+it in your network. It will periodically poll all the nodes in your network
+it's aware of for data, which it in turn will use to create graphs and HTML
+pages, suitable for viewing with your graphical web browser of choice.
+
+Munin is written in Perl, and relies heavily on Tobi Oetiker's excellent
+RRDtool. 
+
+%package node
+Group: System Environment/Daemons
+Summary: Network-wide graphing framework (node)
+BuildArchitectures: noarch
+Requires: perl-Net-Server
+Requires: procps >= 2.0.7
+Requires: sysstat
+Requires(pre):		fedora-usermgmt >= 0.7
+Requires(postun):	fedora-usermgmt >= 0.7
+Requires(post): /sbin/chkconfig
+Requires(preun): /sbin/chkconfig
+Requires(preun): /sbin/service
+
+%description node
+Munin is a highly flexible and powerful solution used to create graphs of
+virtually everything imaginable throughout your network, while still
+maintaining a rattling ease of installation and configuration.
+
+This package contains node software. You should install it on all the nodes
+in your network. It will know how to extract all sorts of data from the
+node it runs on, and will wait for the gatherer to request this data for
+further processing.
+
+It includes a range of plugins capable of extracting common values such as
+cpu usage, network usage, load average, and so on. Creating your own plugins
+which are capable of extracting other system-specific values is very easy,
+and is often done in a matter of minutes. You can also create plugins which
+relay information from other devices in your network that can't run Munin,
+such as a switch or a server running another operating system, by using
+SNMP or similar technology.
+
+Munin is written in Perl, and relies heavily on Tobi Oetiker's excellent
+RRDtool. 
+
+%prep
+%setup -q
+rm -rf %{buildroot}
+mkdir -p %{buildroot}
+
+%build
+
+# htmldoc and html2text are not available for Red Hat. Quick hack with perl:
+# Skip the PDFs.
+perl -pi -e 's,htmldoc munin,cat munin, or s,html(2text|doc),# $&,' Makefile
+perl -pi -e 's,\$\(INSTALL.+\.(pdf|txt) \$\(DOCDIR,# $&,' Makefile
+make 	CONFIG=dists/redhat/Makefile.config build
+
+%install
+
+## Node
+make 	CONFIG=dists/redhat/Makefile.config \
+	DOCDIR=%{buildroot}%{_docdir}/%{name}-%{version} \
+	MANDIR=%{buildroot}%{_mandir} \
+	DESTDIR=%{buildroot} \
+    	install-main install-node-non-snmp install-node-plugins install-doc install-man
+
+mkdir -p %{buildroot}/etc/rc.d/init.d
+mkdir -p %{buildroot}/etc/munin/plugins
+mkdir -p %{buildroot}/etc/munin/plugin-conf.d
+mkdir -p %{buildroot}/etc/logrotate.d
+mkdir -p %{buildroot}/var/lib/munin
+mkdir -p %{buildroot}/var/log/munin
+
+# 
+# don't enable munin-node by default. 
+#
+cat dists/redhat/munin-node.rc | sed -e 's/2345/\-/' > %{buildroot}/etc/rc.d/init.d/munin-node
+chmod 755 %{buildroot}/etc/rc.d/init.d/munin-node
+
+install -m0644 dists/tarball/plugins.conf %{buildroot}/etc/munin/
+install -m0644 dists/tarball/plugins.conf %{buildroot}/etc/munin/plugin-conf.d/munin-node
+install -m0644 dists/debian/munin.logrotate %{buildroot}/etc/logrotate.d/munin
+install -m0644 dists/debian/munin-node.logrotate %{buildroot}/etc/logrotate.d/munin-node
+
+# 
+# remove the Net::SNMP and Sybase plugins for now, as they need perl modules 
+# that are not in extras. We can readd them when/if those modules are added. 
+#
+rm -f %{buildroot}/usr/share/munin/plugins/pm3users_
+rm -f %{buildroot}/usr/share/munin/plugins/snmp_*
+rm -f %{buildroot}/usr/share/munin/plugins/sybase_space
+
+## Server
+make 	CONFIG=dists/redhat/Makefile.config \
+	DESTDIR=%{buildroot} \
+	install-main
+
+mkdir -p %{buildroot}/var/www/html/munin
+mkdir -p %{buildroot}/var/log/munin
+mkdir -p %{buildroot}/etc/cron.d
+
+install -m 0644 dists/redhat/munin.cron.d %{buildroot}/etc/cron.d/munin
+install -m 0644 server/style.css %{buildroot}/var/www/html/munin
+install -m 0644 ChangeLog %{buildroot}%{_docdir}/%{name}-%{version}/ChangeLog
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+#
+# node package scripts
+# uid 18 is the next uid in http://fedoraproject.org/wiki/PackageUserRegistry
+#
+%pre node
+/usr/sbin/fedora-groupadd 18 -r munin &>/dev/null || :
+/usr/sbin/fedora-useradd 18 -r -s /sbin/nologin -d /var/lib/munin -M \
+                            -c 'Munin user' -g munin munin &>/dev/null || :
+
+%post node
+/sbin/chkconfig --add munin-node
+/usr/sbin/munin-node-configure --shell | sh
+
+%preun node
+test "$1" != 0 || %{_initrddir}/munin-node stop &>/dev/null || :
+test "$1" != 0 || /sbin/chkconfig --del munin-node
+
+%postun node
+test "$1" != 0 || /usr/sbin/fedora-userdel munin &>/dev/null || :
+test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
+
+# 
+# main package scripts
+# uid 18 is the next uid in http://fedoraproject.org/wiki/PackageUserRegistry
+#
+%pre
+/usr/sbin/fedora-groupadd 18 -r munin &>/dev/null || :
+/usr/sbin/fedora-useradd 18 -r -s /sbin/nologin -d /var/lib/munin -M \
+                            -c 'Munin user' -g munin munin &>/dev/null || :
+
+%postun
+test "$1" != 0 || /usr/sbin/fedora-userdel munin &>/dev/null || :
+test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
+ 
+%files
+%defattr(-, root, root)
+%doc %{_docdir}/%{name}-%{version}/README.api
+%doc %{_docdir}/%{name}-%{version}/README.plugins
+%doc %{_docdir}/%{name}-%{version}/COPYING
+%doc %{_docdir}/%{name}-%{version}/ChangeLog
+%doc %{_docdir}/%{name}-%{version}/README-apache-cgi
+%{_bindir}/munin-cron
+%{_datadir}/munin/munin-graph
+%{_datadir}/munin/munin-html
+%{_datadir}/munin/munin-limits
+%{_datadir}/munin/munin-update
+%{_libdir}/perl5/*perl/5.*/Munin.pm
+/var/www/html/munin/cgi/munin-cgi-graph
+%dir /etc/munin/templates
+%dir /etc/munin
+%config(noreplace) /etc/munin/templates/*
+%config(noreplace) /etc/cron.d/munin
+%config(noreplace) /etc/munin/munin.conf
+%config(noreplace) /etc/logrotate.d/munin
+
+%attr(-, munin, munin) %dir /var/lib/munin
+%attr(-, munin, munin) %dir /var/run/munin
+%attr(-, munin, munin) %dir /var/log/munin
+%attr(-, munin, munin) %dir /var/www/html/munin
+%attr(-, root, root) %dir /var/www/html/munin/cgi
+%attr(-, root, root) /var/www/html/munin/style.css
+%doc %{_mandir}/man8/munin-graph*
+%doc %{_mandir}/man8/munin-update*
+%doc %{_mandir}/man8/munin-limits*
+%doc %{_mandir}/man8/munin-html*
+%doc %{_mandir}/man8/munin-cron*
+%doc %{_mandir}/man5/munin.conf*
+
+%files node
+%defattr(-, root, root)
+%config(noreplace) /etc/munin/munin-node.conf
+%config(noreplace) /etc/munin/plugin-conf.d/munin-node
+%config(noreplace) /etc/logrotate.d/munin-node
+/etc/rc.d/init.d/munin-node
+%config(noreplace) /etc/munin/plugins.conf
+%{_sbindir}/munin-run
+%{_sbindir}/munin-node
+%{_sbindir}/munin-node-configure
+%dir /var/log/munin
+%dir %{_datadir}/munin
+%dir /etc/munin/plugins
+%dir /etc/munin
+%dir /var/lib/munin
+%dir %attr(-, munin, munin) /var/lib/munin/plugin-state
+%{_datadir}/munin/plugins/*
+%doc %{_docdir}/%{name}-%{version}/COPYING
+%doc %{_docdir}/%{name}-%{version}/munin-doc.html
+%doc %{_docdir}/%{name}-%{version}/munin-faq.html
+%doc %{_mandir}/man8/munin-run*
+%doc %{_mandir}/man8/munin-node*
+%doc %{_mandir}/man5/munin-node*
+
+%changelog
+* Mon Dec 12 2005 Kevin Fenzi <kevin@tummy.com> - 1.2.4-2
+- Removed plugins that require Net-SNMP and Sybase 
+
+* Tue Dec  6 2005 Kevin Fenzi <kevin@tummy.com> - 1.2.4-1
+- Inital cleanup for fedora-extras
