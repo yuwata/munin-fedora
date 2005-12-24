@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.4
-Release:   4%{?dist}
+Release:   5%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPL
 Group:     System Environment/Daemons
@@ -207,7 +207,7 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %{_sbindir}/munin-run
 %{_sbindir}/munin-node
 %{_sbindir}/munin-node-configure
-%dir /var/log/munin
+%attr(-, munin, munin) %dir /var/log/munin
 %dir %{_datadir}/munin
 %dir /etc/munin/plugins
 %dir /etc/munin
@@ -222,7 +222,10 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
-* Wed Dec 14 2005 Kevin Fenzi <kevin@tummy.com> - 1.2.4-3
+* Sat Dec 24 2005 Kevin Fenzi <kevin@tummy.com> - 1.2.4-5
+- Fixed ownership for /var/log/munin in node subpackage (fixes 176529)
+
+* Wed Dec 14 2005 Kevin Fenzi <kevin@tummy.com> - 1.2.4-4
 - Fixed ownership for /var/lib/munin in node subpackage
 
 * Wed Dec 14 2005 Kevin Fenzi <kevin@tummy.com> - 1.2.4-3
