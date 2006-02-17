@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.4
-Release:   5%{?dist}
+Release:   6%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPL
 Group:     System Environment/Daemons
@@ -222,6 +222,10 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Thu Feb 16 2006 Kevin Fenzi <kevin@tummy.com> - 1.2.4-6
+- Readded old changelog entries per request
+- Rebuilt for fc5
+
 * Sat Dec 24 2005 Kevin Fenzi <kevin@tummy.com> - 1.2.4-5
 - Fixed ownership for /var/log/munin in node subpackage (fixes 176529)
 
@@ -236,3 +240,52 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 
 * Tue Dec  6 2005 Kevin Fenzi <kevin@tummy.com> - 1.2.4-1
 - Inital cleanup for fedora-extras
+
+* Thu Apr 21 2005 Ingvar Hagelund <ingvar@linpro.no> - 1.2.3-4
+- Fixed a bug in the iostat plugin
+
+* Wed Apr 20 2005 Ingvar Hagelund <ingvar@linpro.no> - 1.2.3-3
+- Added the missing /var/run/munin
+
+* Tue Apr 19 2005 Ingvar Hagelund <ingvar@linpro.no> - 1.2.3-2
+- Removed a lot of unecessary perl dependencies
+
+* Mon Apr 18 2005 Ingvar Hagelund <ingvar@linpro.no> - 1.2.3-1
+- Sync with svn
+
+* Tue Mar 22 2005 Ingvar Hagelund <ingvar@linpro.no> - 1.2.2-5
+- Sync with release of 1.2.2
+- Add some nice text from the suse specfile
+- Minimal changes in the header
+- Some cosmetic changes
+- Added logrotate scripts (stolen from debian package)
+
+* Sun Feb 01 2004 Ingvar Hagelund <ingvar@linpro.no>
+- Sync with CVS. Version 1.0.0pre2
+
+* Sun Jan 18 2004 Ingvar Hagelund <ingvar@linpro.no>
+- Sync with CVS. Change names to munin.
+
+* Fri Oct 31 2003 Ingvar Hagelund <ingvar@linpro.no>
+- Lot of small fixes. Now builds on more RPM distros
+
+* Wed May 21 2003 Ingvar Hagelund <ingvar@linpro.no>
+- Sync with CVS
+- 0.9.5-1
+
+* Tue Apr  1 2003 Ingvar Hagelund <ingvar@linpro.no>
+- Sync with CVS
+- Makefile-based install of core files
+- Build doc (only pod2man)
+
+* Thu Jan  9 2003 Ingvar Hagelund <ingvar@linpro.no>
+- Sync with CVS, auto rpmbuild
+
+* Thu Jan  2 2003 Ingvar Hagelund <ingvar@linpro.no>
+- Fix spec file for RedHat 8.0 and new version of lrrd
+
+* Wed Sep  4 2002 Ingvar Hagelund <ingvar@linpro.no>
+- Small bugfixes in the rpm package
+
+* Tue Jun 18 2002 Kjetil Torgrim Homme <kjetilho@linpro.no>
+- new package
