@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.4
-Release:   6%{?dist}
+Release:   7%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPL
 Group:     System Environment/Daemons
@@ -10,7 +10,6 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0: http://download.sourceforge.net/sourceforge/munin/%{name}_%{version}.tar.gz
 BuildArchitectures: noarch
-Provides: perl(RRDs)
 Requires: perl-HTML-Template
 Requires: perl-Net-Server
 Requires: rrdtool
@@ -222,6 +221,9 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Fri Feb 24 2006 Kevin Fenzi <kevin@scrye.com> - 1.2.4-7
+- Remove bogus Provides for perl RRDs (fixes #182702)
+
 * Thu Feb 16 2006 Kevin Fenzi <kevin@tummy.com> - 1.2.4-6
 - Readded old changelog entries per request
 - Rebuilt for fc5
