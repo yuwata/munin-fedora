@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.4
-Release:   7%{?dist}
+Release:   8%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPL
 Group:     System Environment/Daemons
@@ -9,6 +9,8 @@ URL:       http://munin.projects.linpro.no/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0: http://download.sourceforge.net/sourceforge/munin/%{name}_%{version}.tar.gz
+Patch0: munin-1.2.4-cron.patch
+Patch1: munin-1.2.4-conf.patch
 BuildArchitectures: noarch
 Requires: perl-HTML-Template
 Requires: perl-Net-Server
@@ -66,8 +68,8 @@ RRDtool.
 
 %prep
 %setup -q
-rm -rf %{buildroot}
-mkdir -p %{buildroot}
+%patch0 -p1
+%patch1 -p1
 
 %build
 
@@ -221,6 +223,11 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Sat Apr 22 2006 Kevin Fenzi <kevin@tummy.com> - 1.2.4-8
+- add patch to remove unneeded munin-nagios in cron. 
+- add patch to remove buildhostname in munin.conf (fixes #188928)
+- clean up prep section of spec. 
+
 * Fri Feb 24 2006 Kevin Fenzi <kevin@scrye.com> - 1.2.4-7
 - Remove bogus Provides for perl RRDs (fixes #182702)
 
