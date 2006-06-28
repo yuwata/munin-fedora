@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.4
-Release:   8%{?dist}
+Release:   9%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPL
 Group:     System Environment/Daemons
@@ -9,11 +9,12 @@ URL:       http://munin.projects.linpro.no/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0: http://download.sourceforge.net/sourceforge/munin/%{name}_%{version}.tar.gz
+Source1: munin-1.2.4-sendmail-config
 Patch0: munin-1.2.4-cron.patch
 Patch1: munin-1.2.4-conf.patch
 BuildArchitectures: noarch
 Requires: perl-HTML-Template
-Requires: perl-Net-Server
+Requires: perl-Net-Server perl-Net-SNMP
 Requires: rrdtool
 Requires: logrotate
 Requires(pre):		fedora-usermgmt >= 0.7
@@ -86,7 +87,7 @@ make 	CONFIG=dists/redhat/Makefile.config \
 	DOCDIR=%{buildroot}%{_docdir}/%{name}-%{version} \
 	MANDIR=%{buildroot}%{_mandir} \
 	DESTDIR=%{buildroot} \
-    	install-main install-node-non-snmp install-node-plugins install-doc install-man
+    	install-main install-node install-node-plugins install-doc install-man
 
 mkdir -p %{buildroot}/etc/rc.d/init.d
 mkdir -p %{buildroot}/etc/munin/plugins
@@ -107,11 +108,9 @@ install -m0644 dists/debian/munin.logrotate %{buildroot}/etc/logrotate.d/munin
 install -m0644 dists/debian/munin-node.logrotate %{buildroot}/etc/logrotate.d/munin-node
 
 # 
-# remove the Net::SNMP and Sybase plugins for now, as they need perl modules 
+# remove the Sybase plugin for now, as they need perl modules 
 # that are not in extras. We can readd them when/if those modules are added. 
 #
-rm -f %{buildroot}/usr/share/munin/plugins/pm3users_
-rm -f %{buildroot}/usr/share/munin/plugins/snmp_*
 rm -f %{buildroot}/usr/share/munin/plugins/sybase_space
 
 ## Server
@@ -126,6 +125,8 @@ mkdir -p %{buildroot}/etc/cron.d
 install -m 0644 dists/redhat/munin.cron.d %{buildroot}/etc/cron.d/munin
 install -m 0644 server/style.css %{buildroot}/var/www/html/munin
 install -m 0644 ChangeLog %{buildroot}%{_docdir}/%{name}-%{version}/ChangeLog
+# install config for sendmail under fedora
+install -m 0644 %{SOURCE1} %{buildroot}/etc/munin/plugin-conf.d/sendmail
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -202,12 +203,14 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %defattr(-, root, root)
 %config(noreplace) /etc/munin/munin-node.conf
 %config(noreplace) /etc/munin/plugin-conf.d/munin-node
+%config(noreplace) /etc/munin/plugin-conf.d/sendmail
 %config(noreplace) /etc/logrotate.d/munin-node
 /etc/rc.d/init.d/munin-node
 %config(noreplace) /etc/munin/plugins.conf
 %{_sbindir}/munin-run
 %{_sbindir}/munin-node
 %{_sbindir}/munin-node-configure
+%{_sbindir}/munin-node-configure-snmp
 %attr(-, munin, munin) %dir /var/log/munin
 %dir %{_datadir}/munin
 %dir /etc/munin/plugins
@@ -223,6 +226,11 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Tue Jun 27 2006 Kevin Fenzi <kevin@tummy.com> - 1.2.4-9
+- Re-enable snmp plugins now that perl-Net-SNMP is available (fixes 196588)
+- Thanks to Herbert Straub <herbert@linuxhacker.at> for patch. 
+- Fix sendmail plugins to look in the right place for the queue
+
 * Sat Apr 22 2006 Kevin Fenzi <kevin@tummy.com> - 1.2.4-8
 - add patch to remove unneeded munin-nagios in cron. 
 - add patch to remove buildhostname in munin.conf (fixes #188928)
