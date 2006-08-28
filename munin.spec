@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.4
-Release:   9%{?dist}
+Release:   10%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPL
 Group:     System Environment/Daemons
@@ -226,6 +226,9 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Sun Aug 27 2006 Kevin Fenzi <kevin@tummy.com> - 1.2.4-10
+- Rebuild for fc6
+
 * Tue Jun 27 2006 Kevin Fenzi <kevin@tummy.com> - 1.2.4-9
 - Re-enable snmp plugins now that perl-Net-SNMP is available (fixes 196588)
 - Thanks to Herbert Straub <herbert@linuxhacker.at> for patch. 
