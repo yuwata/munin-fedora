@@ -1,6 +1,6 @@
 Name:      munin
-Version:   1.2.4
-Release:   10%{?dist}
+Version:   1.2.5
+Release:   1%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPL
 Group:     System Environment/Daemons
@@ -10,6 +10,9 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0: http://download.sourceforge.net/sourceforge/munin/%{name}_%{version}.tar.gz
 Source1: munin-1.2.4-sendmail-config
+Source2: munin-1.2.5-hddtemp_smartctl-config
+Source3: munin-node.logrotate
+Source4: munin.logrotate
 Patch0: munin-1.2.4-cron.patch
 Patch1: munin-1.2.4-conf.patch
 BuildArchitectures: noarch
@@ -17,8 +20,8 @@ Requires: perl-HTML-Template
 Requires: perl-Net-Server perl-Net-SNMP
 Requires: rrdtool
 Requires: logrotate
-Requires(pre):		fedora-usermgmt >= 0.7
-Requires(postun):	fedora-usermgmt >= 0.7
+Requires(pre): fedora-usermgmt >= 0.7
+Requires(postun): fedora-usermgmt >= 0.7
 
 %description
 Munin is a highly flexible and powerful solution used to create graphs of
@@ -104,8 +107,6 @@ chmod 755 %{buildroot}/etc/rc.d/init.d/munin-node
 
 install -m0644 dists/tarball/plugins.conf %{buildroot}/etc/munin/
 install -m0644 dists/tarball/plugins.conf %{buildroot}/etc/munin/plugin-conf.d/munin-node
-install -m0644 dists/debian/munin.logrotate %{buildroot}/etc/logrotate.d/munin
-install -m0644 dists/debian/munin-node.logrotate %{buildroot}/etc/logrotate.d/munin-node
 
 # 
 # remove the Sybase plugin for now, as they need perl modules 
@@ -127,6 +128,11 @@ install -m 0644 server/style.css %{buildroot}/var/www/html/munin
 install -m 0644 ChangeLog %{buildroot}%{_docdir}/%{name}-%{version}/ChangeLog
 # install config for sendmail under fedora
 install -m 0644 %{SOURCE1} %{buildroot}/etc/munin/plugin-conf.d/sendmail
+# install config for hddtemp_smartctl
+install -m 0644 %{SOURCE2} %{buildroot}/etc/munin/plugin-conf.d/hddtemp_smartctl
+# install logrotate scripts
+install -m 0644 %{SOURCE3} %{buildroot}/etc/logrotate.d/munin-node
+install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -177,6 +183,7 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %{_datadir}/munin/munin-html
 %{_datadir}/munin/munin-limits
 %{_datadir}/munin/munin-update
+%{_datadir}/munin/VeraMono.ttf
 %{perl_vendorlib}/Munin.pm
 /var/www/html/munin/cgi/munin-cgi-graph
 %dir /etc/munin/templates
@@ -204,6 +211,7 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %config(noreplace) /etc/munin/munin-node.conf
 %config(noreplace) /etc/munin/plugin-conf.d/munin-node
 %config(noreplace) /etc/munin/plugin-conf.d/sendmail
+%config(noreplace) /etc/munin/plugin-conf.d/hddtemp_smartctl
 %config(noreplace) /etc/logrotate.d/munin-node
 /etc/rc.d/init.d/munin-node
 %config(noreplace) /etc/munin/plugins.conf
@@ -226,6 +234,11 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Tue Oct 17 2006 Kevin Fenzi <kevin@tummy.com> - 1.2.5-1
+- Update to 1.2.5
+- Fix HD stats (fixes #205042)
+- Add in logrotate scripts that seem to have been dropped upstream
+
 * Sun Aug 27 2006 Kevin Fenzi <kevin@tummy.com> - 1.2.4-10
 - Rebuild for fc6
 
