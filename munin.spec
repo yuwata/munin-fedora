@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.5
-Release:   1%{?dist}
+Release:   2%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPL
 Group:     System Environment/Daemons
@@ -173,12 +173,9 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
  
 %files
 %defattr(-, root, root)
-%doc %{_docdir}/%{name}-%{version}/README.api
-%doc %{_docdir}/%{name}-%{version}/README.plugins
-%doc %{_docdir}/%{name}-%{version}/COPYING
-%doc %{_docdir}/%{name}-%{version}/ChangeLog
-%doc %{_docdir}/%{name}-%{version}/README-apache-cgi
+%doc %{_docdir}/%{name}-%{version}/
 %{_bindir}/munin-cron
+%dir %{_datadir}/munin
 %{_datadir}/munin/munin-graph
 %{_datadir}/munin/munin-html
 %{_datadir}/munin/munin-limits
@@ -209,6 +206,7 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %files node
 %defattr(-, root, root)
 %config(noreplace) /etc/munin/munin-node.conf
+%dir /etc/munin/plugin-conf.d
 %config(noreplace) /etc/munin/plugin-conf.d/munin-node
 %config(noreplace) /etc/munin/plugin-conf.d/sendmail
 %config(noreplace) /etc/munin/plugin-conf.d/hddtemp_smartctl
@@ -225,15 +223,16 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %dir /etc/munin
 %attr(-, munin, munin) %dir /var/lib/munin
 %dir %attr(-, munin, munin) /var/lib/munin/plugin-state
-%{_datadir}/munin/plugins/*
-%doc %{_docdir}/%{name}-%{version}/COPYING
-%doc %{_docdir}/%{name}-%{version}/munin-doc.html
-%doc %{_docdir}/%{name}-%{version}/munin-faq.html
+%{_datadir}/munin/plugins/
+%doc %{_docdir}/%{name}-%{version}/
 %doc %{_mandir}/man8/munin-run*
 %doc %{_mandir}/man8/munin-node*
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Tue Mar 27 2007 Kevin Fenzi <kevin@tummy.com> - 1.2.5-2
+- Fix directory ownership (fixes #233886)
+
 * Tue Oct 17 2006 Kevin Fenzi <kevin@tummy.com> - 1.2.5-1
 - Update to 1.2.5
 - Fix HD stats (fixes #205042)
