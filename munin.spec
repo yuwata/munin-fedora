@@ -1,8 +1,8 @@
 Name:      munin
 Version:   1.2.5
-Release:   2%{?dist}
+Release:   3%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
-License:   GPL
+License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
 URL:       http://munin.projects.linpro.no/
 
@@ -13,15 +13,16 @@ Source1: munin-1.2.4-sendmail-config
 Source2: munin-1.2.5-hddtemp_smartctl-config
 Source3: munin-node.logrotate
 Source4: munin.logrotate
+Source5: nf_conntrack
 Patch0: munin-1.2.4-cron.patch
 Patch1: munin-1.2.4-conf.patch
+Patch2: munin-1.2.5-nf-conntrack.patch
 BuildArchitectures: noarch
 Requires: perl-HTML-Template
 Requires: perl-Net-Server perl-Net-SNMP
 Requires: rrdtool
 Requires: logrotate
-Requires(pre): fedora-usermgmt >= 0.7
-Requires(postun): fedora-usermgmt >= 0.7
+Requires(pre): shadow-utils
 
 %description
 Munin is a highly flexible and powerful solution used to create graphs of
@@ -43,8 +44,7 @@ BuildArchitectures: noarch
 Requires: perl-Net-Server
 Requires: procps >= 2.0.7
 Requires: sysstat
-Requires(pre):		fedora-usermgmt >= 0.7
-Requires(postun):	fedora-usermgmt >= 0.7
+Requires(pre): shadow-utils
 Requires(post): /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
@@ -74,6 +74,7 @@ RRDtool.
 %setup -q
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 
 %build
 
@@ -105,7 +106,6 @@ mkdir -p %{buildroot}/var/log/munin
 cat dists/redhat/munin-node.rc | sed -e 's/2345/\-/' > %{buildroot}/etc/rc.d/init.d/munin-node
 chmod 755 %{buildroot}/etc/rc.d/init.d/munin-node
 
-install -m0644 dists/tarball/plugins.conf %{buildroot}/etc/munin/
 install -m0644 dists/tarball/plugins.conf %{buildroot}/etc/munin/plugin-conf.d/munin-node
 
 # 
@@ -133,18 +133,21 @@ install -m 0644 %{SOURCE2} %{buildroot}/etc/munin/plugin-conf.d/hddtemp_smartctl
 # install logrotate scripts
 install -m 0644 %{SOURCE3} %{buildroot}/etc/logrotate.d/munin-node
 install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
+# install config for nf_conntrack
+install -m 0644 %{SOURCE5} %{buildroot}/etc/munin/plugin-conf.d/nf_conntrack
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 #
 # node package scripts
-# uid 18 is the next uid in http://fedoraproject.org/wiki/PackageUserRegistry
 #
 %pre node
-/usr/sbin/fedora-groupadd 18 -r munin &>/dev/null || :
-/usr/sbin/fedora-useradd 18 -r -s /sbin/nologin -d /var/lib/munin -M \
-                            -c 'Munin user' -g munin munin &>/dev/null || :
+getent group munin >/dev/null || groupadd -r munin
+getent passwd munin >/dev/null || \
+useradd -r -g munin -d /var/lib/munin -s /sbin/nologin \
+    -c "Munin user" munin
+exit 0
 
 %post node
 /sbin/chkconfig --add munin-node
@@ -154,22 +157,15 @@ rm -rf $RPM_BUILD_ROOT
 test "$1" != 0 || %{_initrddir}/munin-node stop &>/dev/null || :
 test "$1" != 0 || /sbin/chkconfig --del munin-node
 
-%postun node
-test "$1" != 0 || /usr/sbin/fedora-userdel munin &>/dev/null || :
-test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
-
 # 
 # main package scripts
-# uid 18 is the next uid in http://fedoraproject.org/wiki/PackageUserRegistry
 #
 %pre
-/usr/sbin/fedora-groupadd 18 -r munin &>/dev/null || :
-/usr/sbin/fedora-useradd 18 -r -s /sbin/nologin -d /var/lib/munin -M \
-                            -c 'Munin user' -g munin munin &>/dev/null || :
-
-%postun
-test "$1" != 0 || /usr/sbin/fedora-userdel munin &>/dev/null || :
-test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
+getent group munin >/dev/null || groupadd -r munin
+getent passwd munin >/dev/null || \
+useradd -r -g munin -d /var/lib/munin -s /sbin/nologin \
+    -c "Munin user" munin
+exit 0
  
 %files
 %defattr(-, root, root)
@@ -210,9 +206,9 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %config(noreplace) /etc/munin/plugin-conf.d/munin-node
 %config(noreplace) /etc/munin/plugin-conf.d/sendmail
 %config(noreplace) /etc/munin/plugin-conf.d/hddtemp_smartctl
+%config(noreplace) /etc/munin/plugin-conf.d/nf_conntrack
 %config(noreplace) /etc/logrotate.d/munin-node
 /etc/rc.d/init.d/munin-node
-%config(noreplace) /etc/munin/plugins.conf
 %{_sbindir}/munin-run
 %{_sbindir}/munin-node
 %{_sbindir}/munin-node-configure
@@ -230,6 +226,12 @@ test "$1" != 0 || /usr/sbin/fedora-groupdel munin &>/dev/null || :
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Fri Nov 30 2007 Kevin Fenzi <kevin@tummy.com> - 1.2.5-3
+- Removed unnneeded plugins.conf file (fixes #288541)
+- Fix license tag.
+- Fix ip_conntrack monitoring (fixes #253192)
+- Switch to new useradd guidelines.
+
 * Tue Mar 27 2007 Kevin Fenzi <kevin@tummy.com> - 1.2.5-2
 - Fix directory ownership (fixes #233886)
 
