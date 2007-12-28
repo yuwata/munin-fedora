@@ -1,0 +1,54 @@
+diff -Nur munin-1.2.5.orig/node/node.d/acpi.in munin-1.2.5/node/node.d/acpi.in
+--- munin-1.2.5.orig/node/node.d/acpi.in	2006-10-17 06:27:35.000000000 -0600
++++ munin-1.2.5/node/node.d/acpi.in	2007-12-26 12:26:26.000000000 -0700
+@@ -51,7 +51,7 @@
+ 
+         echo 'graph_title CPU temperature'
+         echo 'graph_args --base 1000 -l 0'
+-        echo 'graph_vlabel temp in °C'
++        echo 'graph_vlabel temp in C'
+         echo 'graph_category sensors'
+ 		echo 'graph_info This graph shows temperatures based on output from ACPI.'
+         echo cpu.label cpu
+diff -Nur munin-1.2.5.orig/node/node.d/hddtemp.in munin-1.2.5/node/node.d/hddtemp.in
+--- munin-1.2.5.orig/node/node.d/hddtemp.in	2006-10-17 06:27:35.000000000 -0600
++++ munin-1.2.5/node/node.d/hddtemp.in	2007-12-26 12:26:18.000000000 -0700
+@@ -53,7 +53,7 @@
+ 
+         echo 'graph_title HDD temperature'
+         echo 'graph_args --base 1000 -l 0'
+-        echo 'graph_vlabel temp in °C'
++        echo 'graph_vlabel temp in C'
+         echo 'graph_category sensors'
+         for a in $drives ; do echo $a.label $a ; done
+         exit 0
+diff -Nur munin-1.2.5.orig/node/node.d/hddtemp_smartctl.in munin-1.2.5/node/node.d/hddtemp_smartctl.in
+--- munin-1.2.5.orig/node/node.d/hddtemp_smartctl.in	2006-10-17 06:27:35.000000000 -0600
++++ munin-1.2.5/node/node.d/hddtemp_smartctl.in	2007-12-26 12:26:22.000000000 -0700
+@@ -135,7 +135,7 @@
+   } elsif ($ARGV[0] eq 'config') {
+     print "graph_title HDD temperature\n";
+     print "graph_args --base 1000 -l 0\n";
+-    print "graph_vlabel temp in °C\n";
++    print "graph_vlabel temp in C\n";
+     print "graph_category sensors\n";
+     print "graph_info This graph shows the temperature in degrees Celsius of the hard drives in the machine.\n";
+     print "$_.label $_\n" foreach @drives;
+diff -Nur munin-1.2.5.orig/node/node.d.linux/interrupts.in munin-1.2.5/node/node.d.linux/interrupts.in
+--- munin-1.2.5.orig/node/node.d.linux/interrupts.in	2006-10-17 06:27:35.000000000 -0600
++++ munin-1.2.5/node/node.d.linux/interrupts.in	2007-12-26 12:25:32.000000000 -0700
+@@ -56,12 +56,12 @@
+  
+ if [ "$1" = "config" ]; then
+ 	# The title of the graph
+-	echo 'graph_title Interrupts & context switches'
++	echo 'graph_title Interrupts &amp; context switches'
+ 	# Arguments to "rrdtool graph". In this case, tell it that the
+ 	# lower limit of the graph is '0', and that 1k=1000 (not 1024)
+ 	echo 'graph_args --base 1000 -l 0'
+ 	# The Y-axis label
+-	echo 'graph_vlabel interrupts & ctx switches / ${graph_period}'
++	echo 'graph_vlabel interrupts &amp; ctx switches / ${graph_period}'
+ 	# Graph category
+ 	echo 'graph_category system'
+ 	# Graph information

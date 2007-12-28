@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.5
-Release:   3%{?dist}
+Release:   4%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -17,6 +17,7 @@ Source5: nf_conntrack
 Patch0: munin-1.2.4-cron.patch
 Patch1: munin-1.2.4-conf.patch
 Patch2: munin-1.2.5-nf-conntrack.patch
+Patch3: munin-1.2.5-amp-degree.patch
 BuildArchitectures: noarch
 Requires: perl-HTML-Template
 Requires: perl-Net-Server perl-Net-SNMP
@@ -75,6 +76,7 @@ RRDtool.
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
 
 %build
 
@@ -226,6 +228,9 @@ exit 0
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Wed Dec 26 2007 Kevin Fenzi <kevin@tummy.com> - 1.2.5-4
+- Add patch to fix ampersand and degrees in plugins (fixes #376441)
+
 * Fri Nov 30 2007 Kevin Fenzi <kevin@tummy.com> - 1.2.5-3
 - Removed unnneeded plugins.conf file (fixes #288541)
 - Fix license tag.
