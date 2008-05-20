@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.5
-Release:   4%{?dist}
+Release:   5%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -228,6 +228,9 @@ exit 0
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Tue May 20 2008 Kevin Fenzi <kevin@tummy.com> - 1.2.5-5
+- Rebuild for new perl
+
 * Wed Dec 26 2007 Kevin Fenzi <kevin@tummy.com> - 1.2.5-4
 - Add patch to fix ampersand and degrees in plugins (fixes #376441)
 
