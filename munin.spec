@@ -1,6 +1,6 @@
 Name:      munin
-Version:   1.2.5
-Release:   5%{?dist}
+Version:   1.2.6
+Release:   1%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -14,10 +14,10 @@ Source2: munin-1.2.5-hddtemp_smartctl-config
 Source3: munin-node.logrotate
 Source4: munin.logrotate
 Source5: nf_conntrack
-Patch0: munin-1.2.4-cron.patch
 Patch1: munin-1.2.4-conf.patch
 Patch2: munin-1.2.5-nf-conntrack.patch
 Patch3: munin-1.2.5-amp-degree.patch
+Patch4: munin-1.2.6-ntp_offset.patch
 BuildArchitectures: noarch
 Requires: perl-HTML-Template
 Requires: perl-Net-Server perl-Net-SNMP
@@ -73,10 +73,10 @@ RRDtool.
 
 %prep
 %setup -q
-%patch0 -p1
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 %build
 
@@ -138,6 +138,11 @@ install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
 # install config for nf_conntrack
 install -m 0644 %{SOURCE5} %{buildroot}/etc/munin/plugin-conf.d/nf_conntrack
 
+# fix MUNIN_LIBDIR issue. 
+sed -i -e 's/\$MUNIN_LIBDIR/\/usr\/share\/munin\//' %{buildroot}%{_datadir}/munin/plugins/ps_
+sed -i -e 's/\$MUNIN_LIBDIR/\/usr\/share\/munin\//' %{buildroot}%{_datadir}/munin/plugins/multips
+sed -i -e 's/\$MUNIN_LIBDIR/\/usr\/share\/munin\//' %{buildroot}%{_datadir}/munin/plugins/df_abs
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -153,7 +158,7 @@ exit 0
 
 %post node
 /sbin/chkconfig --add munin-node
-/usr/sbin/munin-node-configure --shell | sh
+/usr/sbin/munin-node-configure --shell 2> /dev/null | sh >& /dev/null || :
 
 %preun node
 test "$1" != 0 || %{_initrddir}/munin-node stop &>/dev/null || :
@@ -173,6 +178,7 @@ exit 0
 %defattr(-, root, root)
 %doc %{_docdir}/%{name}-%{version}/
 %{_bindir}/munin-cron
+%{_bindir}/munindoc
 %dir %{_datadir}/munin
 %{_datadir}/munin/munin-graph
 %{_datadir}/munin/munin-html
@@ -180,6 +186,8 @@ exit 0
 %{_datadir}/munin/munin-update
 %{_datadir}/munin/VeraMono.ttf
 %{perl_vendorlib}/Munin.pm
+%dir %{perl_vendorlib}/Munin
+%{perl_vendorlib}/Munin/Plugin.pm
 /var/www/html/munin/cgi/munin-cgi-graph
 %dir /etc/munin/templates
 %dir /etc/munin
@@ -228,6 +236,9 @@ exit 0
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Fri Jun 20 2008 Kevin Fenzi <kevin@tummy.com> - 1.2.6-1
+- Upgrade to 1.2.6
+
 * Tue May 20 2008 Kevin Fenzi <kevin@tummy.com> - 1.2.5-5
 - Rebuild for new perl
 
