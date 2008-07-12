@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.6
-Release:   1%{?dist}
+Release:   2%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -14,16 +14,17 @@ Source2: munin-1.2.5-hddtemp_smartctl-config
 Source3: munin-node.logrotate
 Source4: munin.logrotate
 Source5: nf_conntrack
+Source6: munin-1.2.6-postfix-config
 Patch1: munin-1.2.4-conf.patch
 Patch2: munin-1.2.5-nf-conntrack.patch
 Patch3: munin-1.2.5-amp-degree.patch
 Patch4: munin-1.2.6-ntp_offset.patch
 BuildArchitectures: noarch
-Requires: perl-HTML-Template
 Requires: perl-Net-Server perl-Net-SNMP
 Requires: rrdtool
 Requires: logrotate
 Requires(pre): shadow-utils
+Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 
 %description
 Munin is a highly flexible and powerful solution used to create graphs of
@@ -49,6 +50,7 @@ Requires(pre): shadow-utils
 Requires(post): /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
+Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 
 %description node
 Munin is a highly flexible and powerful solution used to create graphs of
@@ -137,6 +139,8 @@ install -m 0644 %{SOURCE3} %{buildroot}/etc/logrotate.d/munin-node
 install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
 # install config for nf_conntrack
 install -m 0644 %{SOURCE5} %{buildroot}/etc/munin/plugin-conf.d/nf_conntrack
+# install config for postfix under fedora
+install -m 0644 %{SOURCE6} %{buildroot}/etc/munin/plugin-conf.d/postfix
 
 # fix MUNIN_LIBDIR issue. 
 sed -i -e 's/\$MUNIN_LIBDIR/\/usr\/share\/munin\//' %{buildroot}%{_datadir}/munin/plugins/ps_
@@ -217,6 +221,7 @@ exit 0
 %config(noreplace) /etc/munin/plugin-conf.d/sendmail
 %config(noreplace) /etc/munin/plugin-conf.d/hddtemp_smartctl
 %config(noreplace) /etc/munin/plugin-conf.d/nf_conntrack
+%config(noreplace) /etc/munin/plugin-conf.d/postfix
 %config(noreplace) /etc/logrotate.d/munin-node
 /etc/rc.d/init.d/munin-node
 %{_sbindir}/munin-run
@@ -236,6 +241,10 @@ exit 0
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Sat Jul 12 2008 Kevin Fenzi <kevin@tummy.com> - 1.2.6-2
+- Apply postfix patch (fixes #454159)
+- Add perl version dep and remove unneeded perl-HTML-Template (fixes #453923)
+
 * Fri Jun 20 2008 Kevin Fenzi <kevin@tummy.com> - 1.2.6-1
 - Upgrade to 1.2.6
 
