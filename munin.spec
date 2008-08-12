@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.6
-Release:   2%{?dist}
+Release:   3%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -191,7 +191,6 @@ exit 0
 %{_datadir}/munin/VeraMono.ttf
 %{perl_vendorlib}/Munin.pm
 %dir %{perl_vendorlib}/Munin
-%{perl_vendorlib}/Munin/Plugin.pm
 /var/www/html/munin/cgi/munin-cgi-graph
 %dir /etc/munin/templates
 %dir /etc/munin
@@ -223,6 +222,7 @@ exit 0
 %config(noreplace) /etc/munin/plugin-conf.d/nf_conntrack
 %config(noreplace) /etc/munin/plugin-conf.d/postfix
 %config(noreplace) /etc/logrotate.d/munin-node
+%{perl_vendorlib}/Munin/Plugin.pm
 /etc/rc.d/init.d/munin-node
 %{_sbindir}/munin-run
 %{_sbindir}/munin-node
@@ -241,6 +241,9 @@ exit 0
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Mon Aug 11 2008 Kevin Fenzi <kevin@tummy.com> - 1.2.6-3
+- Move Munin/Plugin.pm to the node subpackage (fixes #457403)
+
 * Sat Jul 12 2008 Kevin Fenzi <kevin@tummy.com> - 1.2.6-2
 - Apply postfix patch (fixes #454159)
 - Add perl version dep and remove unneeded perl-HTML-Template (fixes #453923)
