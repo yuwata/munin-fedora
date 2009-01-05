@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.6
-Release:   3%{?dist}
+Release:   4%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -25,6 +25,7 @@ Requires: rrdtool
 Requires: logrotate
 Requires(pre): shadow-utils
 Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+Requires: bitstream-vera-fonts-sans-mono
 
 %description
 Munin is a highly flexible and powerful solution used to create graphs of
@@ -147,6 +148,10 @@ sed -i -e 's/\$MUNIN_LIBDIR/\/usr\/share\/munin\//' %{buildroot}%{_datadir}/muni
 sed -i -e 's/\$MUNIN_LIBDIR/\/usr\/share\/munin\//' %{buildroot}%{_datadir}/munin/plugins/multips
 sed -i -e 's/\$MUNIN_LIBDIR/\/usr\/share\/munin\//' %{buildroot}%{_datadir}/munin/plugins/df_abs
 
+# Use font from bitstream-vera-fonts-sans-mono
+rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
+ln -s /usr/share/fonts/bitstream-vera/VeraMono.ttf $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -241,6 +246,9 @@ exit 0
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Sun Jan 04 2009 Kevin Fenzi <kevin@tummy.com> - 1.2.6-4
+- Require bitstream-vera-fonts-sans-mono for Font (fixes #477428)
+
 * Mon Aug 11 2008 Kevin Fenzi <kevin@tummy.com> - 1.2.6-3
 - Move Munin/Plugin.pm to the node subpackage (fixes #457403)
 
