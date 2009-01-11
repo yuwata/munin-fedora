@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.6
-Release:   4%{?dist}
+Release:   5%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -25,7 +25,7 @@ Requires: rrdtool
 Requires: logrotate
 Requires(pre): shadow-utils
 Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
-Requires: bitstream-vera-fonts-sans-mono
+Requires: dejavu-fonts
 
 %description
 Munin is a highly flexible and powerful solution used to create graphs of
@@ -150,7 +150,7 @@ sed -i -e 's/\$MUNIN_LIBDIR/\/usr\/share\/munin\//' %{buildroot}%{_datadir}/muni
 
 # Use font from bitstream-vera-fonts-sans-mono
 rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
-ln -s /usr/share/fonts/bitstream-vera/VeraMono.ttf $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
+ln -s /usr/share/fonts/dejavu/DejaVuSansMono.ttf $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -246,6 +246,9 @@ exit 0
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Sun Jan 11 2009 Kevin Fenzi <kevin@tummy.com> - 1.2.6-5
+- Switch to using dejavu-fonts instead of bitstream-vera
+
 * Sun Jan 04 2009 Kevin Fenzi <kevin@tummy.com> - 1.2.6-4
 - Require bitstream-vera-fonts-sans-mono for Font (fixes #477428)
 
