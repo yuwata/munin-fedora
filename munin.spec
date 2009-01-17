@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.6
-Release:   6%{?dist}
+Release:   7%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -25,7 +25,7 @@ Requires: rrdtool
 Requires: logrotate
 Requires(pre): shadow-utils
 Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
-Requires: dejavu-fonts-sans-mono
+Requires: dejavu-sans-mono-fonts
 
 %description
 Munin is a highly flexible and powerful solution used to create graphs of
@@ -246,6 +246,9 @@ exit 0
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Sat Jan 17 2009 Kevin Fenzi <kevin@tummy.com> - 1.2.6-7
+- Adjust font requires for new dejavu-sans-mono-fonts name (fixes #480463)
+
 * Mon Jan 12 2009 Kevin Fenzi <kevin@tummy.com> - 1.2.6-6
 - Fix to require the correct font
 
