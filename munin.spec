@@ -23,6 +23,7 @@ BuildArchitectures: noarch
 Requires: perl-Net-Server perl-Net-SNMP
 Requires: rrdtool
 Requires: logrotate
+Requires: /bin/mail
 Requires(pre): shadow-utils
 Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 Requires: dejavu-sans-mono-fonts
