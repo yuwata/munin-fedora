@@ -1,0 +1,13 @@
+--- munin-1.2.6/node/node.d/hddtemp_smartctl.in	2009-01-24 15:47:35.000000000 +0100
++++ munin-1.2.6/node/node.d/hddtemp_smartctl.in	2009-01-24 15:48:18.000000000 +0100
+@@ -146,8 +146,8 @@
+   $fulldev .= 'rdsk/' if $^O eq 'solaris';
+   $fulldev .= exists $ENV{'dev_'.$_} ? $ENV{'dev_'.$_} : $dev;
+ 
+-  # Avoid spinning up sleeping disks
+-  next if `hdparm -C $fulldev 2>/dev/null` =~ /standby/;
++  # Avoid spinning up sleeping disks only for /dev/sd? or /dev/hd? devices.
++  next if $fulldev =~ /\/dev\/[sh]d?/ && `hdparm -C $fulldev 2>/dev/null` =~ /standby/;
+ 
+   my $cmd = $smartctl.' -A ';
+   $cmd .= $ENV{'args_'.$_}.' ' if exists $ENV{'args_'.$_};

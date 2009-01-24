@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.6
-Release:   7%{?dist}
+Release:   8%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -19,6 +19,7 @@ Patch1: munin-1.2.4-conf.patch
 Patch2: munin-1.2.5-nf-conntrack.patch
 Patch3: munin-1.2.5-amp-degree.patch
 Patch4: munin-1.2.6-ntp_offset.patch
+Patch5: munin-1.2.6-hddtemp_smartctl-spinup.patch
 BuildArchitectures: noarch
 Requires: perl-Net-Server perl-Net-SNMP
 Requires: rrdtool
@@ -81,6 +82,7 @@ RRDtool.
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1
 
 %build
 
@@ -247,6 +249,10 @@ exit 0
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Sat Jan 24 2009 Andreas Thienemann <andreas@bawue.net> - 1.2.6-8
+- Updated dependencies to better reflect plugin requirements
+- Added hddtemp_smartctl patch to only scan for standby state on /dev/[sh]d? devices.
+
 * Sat Jan 17 2009 Kevin Fenzi <kevin@tummy.com> - 1.2.6-7
 - Adjust font requires for new dejavu-sans-mono-fonts name (fixes #480463)
 
