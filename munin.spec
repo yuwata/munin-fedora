@@ -47,7 +47,7 @@ Summary: Network-wide graphing framework (node)
 BuildArchitectures: noarch
 Requires: perl-Net-Server
 Requires: procps >= 2.0.7
-Requires: sysstat, /usr/bin/which
+Requires: sysstat, /usr/bin/which, hdparm
 Requires(pre): shadow-utils
 Requires(post): /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
