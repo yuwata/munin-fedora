@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.6
-Release:   3%{?dist}
+Release:   4%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -19,10 +19,12 @@ Patch1: munin-1.2.4-conf.patch
 Patch2: munin-1.2.5-nf-conntrack.patch
 Patch3: munin-1.2.5-amp-degree.patch
 Patch4: munin-1.2.6-ntp_offset.patch
+Patch5: munin-1.2.6-hddtemp_smartctl-spinup.patch
 BuildArchitectures: noarch
 Requires: perl-Net-Server perl-Net-SNMP
 Requires: rrdtool
 Requires: logrotate
+Requires: /bin/mail
 Requires(pre): shadow-utils
 Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 
@@ -45,7 +47,7 @@ Summary: Network-wide graphing framework (node)
 BuildArchitectures: noarch
 Requires: perl-Net-Server
 Requires: procps >= 2.0.7
-Requires: sysstat
+Requires: sysstat, /usr/bin/which, hdparm
 Requires(pre): shadow-utils
 Requires(post): /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
@@ -79,6 +81,7 @@ RRDtool.
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1
 
 %build
 
@@ -241,6 +244,10 @@ exit 0
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Wed Feb 18 2009 Andreas Thienemann <andreas@bawue.net> - 1.2.6-4
+- Updated dependencies to better reflect plugin requirements
+- Added hddtemp_smartctl patch to only scan for standby state on /dev/[sh]d? devices.
+
 * Mon Aug 11 2008 Kevin Fenzi <kevin@tummy.com> - 1.2.6-3
 - Move Munin/Plugin.pm to the node subpackage (fixes #457403)
 
