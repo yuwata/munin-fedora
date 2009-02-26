@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.6
-Release:   8%{?dist}
+Release:   9%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -249,6 +249,9 @@ exit 0
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Wed Feb 25 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.2.6-9
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
+
 * Sat Jan 24 2009 Andreas Thienemann <andreas@bawue.net> - 1.2.6-8
 - Updated dependencies to better reflect plugin requirements
 - Added hddtemp_smartctl patch to only scan for standby state on /dev/[sh]d? devices.
