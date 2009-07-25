@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.2.6
-Release:   9%{?dist}
+Release:   10%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -249,6 +249,9 @@ exit 0
 %doc %{_mandir}/man5/munin-node*
 
 %changelog
+* Sat Jul 25 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.2.6-10
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
+
 * Wed Feb 25 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.2.6-9
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
 
