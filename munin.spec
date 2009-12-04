@@ -1,5 +1,5 @@
 Name:      munin
-Version:   1.4.0
+Version:   1.4.1
 Release:   1%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
@@ -8,7 +8,7 @@ URL:       http://munin.projects.linpro.no/
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-Source0: http://downloads.sourceforge.net/sourceforge/munin/%{name}_%{version}.tar.gz
+Source0: http://downloads.sourceforge.net/sourceforge/munin/%{name}-%{version}.tar.gz
 
 Patch1: munin-1.4.0-config.patch
 
@@ -16,7 +16,6 @@ Source1: munin-1.2.4-sendmail-config
 Source2: munin-1.2.5-hddtemp_smartctl-config
 Source3: munin-node.logrotate
 Source4: munin.logrotate
-Source5: nf_conntrack
 Source6: munin-1.2.6-postfix-config
 
 BuildArchitectures: noarch
@@ -24,6 +23,7 @@ BuildArchitectures: noarch
 BuildRequires: perl-Module-Build
 # needed for hostname for the defaut config
 BuildRequires: net-tools
+# java buildrequires on fedora
 BuildRequires: java-devel >= 1.6
 BuildRequires: mx4j
 BuildRequires: jpackage-utils
@@ -167,8 +167,6 @@ install -m 0644 %{SOURCE2} %{buildroot}/etc/munin/plugin-conf.d/hddtemp_smartctl
 # install logrotate scripts
 install -m 0644 %{SOURCE3} %{buildroot}/etc/logrotate.d/munin-node
 install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
-# install config for nf_conntrack
-install -m 0644 %{SOURCE5} %{buildroot}/etc/munin/plugin-conf.d/nf_conntrack
 # install config for postfix under fedora
 install -m 0644 %{SOURCE6} %{buildroot}/etc/munin/plugin-conf.d/postfix
 
@@ -232,7 +230,6 @@ exit 0
 %attr(-, munin, munin) %dir /var/run/munin
 %attr(-, munin, munin) %dir /var/log/munin
 %attr(-, munin, munin) /var/www/html/munin
-%attr(-, root, root) %dir /var/www/html/munin/cgi
 %doc %{_mandir}/man8/munin*
 %doc %{_mandir}/man5/munin.conf*
 
@@ -243,7 +240,6 @@ exit 0
 %config(noreplace) /etc/munin/plugin-conf.d/munin-node
 %config(noreplace) /etc/munin/plugin-conf.d/sendmail
 %config(noreplace) /etc/munin/plugin-conf.d/hddtemp_smartctl
-%config(noreplace) /etc/munin/plugin-conf.d/nf_conntrack
 %config(noreplace) /etc/munin/plugin-conf.d/postfix
 %config(noreplace) /etc/logrotate.d/munin-node
 /etc/rc.d/init.d/munin-node
@@ -274,6 +270,9 @@ exit 0
 %{_datadir}/java/%{name}-jmx-plugins.jar
 
 %changelog
+* Fri Dec 04 2009 Kevin Fenzi <kevin@tummy.com> - 1.4.1-1
+- Update to 1.4.1
+
 * Sat Nov 28 2009 Kevin Fenzi <kevin@tummy.com> - 1.4.0-1
 - Update to final 1.4.0 version
 
