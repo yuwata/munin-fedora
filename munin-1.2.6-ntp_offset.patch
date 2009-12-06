@@ -1,9 +1,0 @@
-diff -Nur munin-1.2.6.orig/node/node.d/ntp_offset.in munin-1.2.6/node/node.d/ntp_offset.in
---- munin-1.2.6.orig/node/node.d/ntp_offset.in	2008-01-27 11:17:17.000000000 -0700
-+++ munin-1.2.6/node/node.d/ntp_offset.in	2008-06-25 12:52:05.000000000 -0600
-@@ -1,4 +1,4 @@
--#!@@GOODSH@@ -w
-+#!@@GOODSH@@
- # -*- sh -*-
- #
- # Plugin to monitor NTP time offset.
