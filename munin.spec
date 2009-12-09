@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.1
-Release:   1%{?dist}
+Release:   2%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -24,9 +24,11 @@ BuildRequires: perl-Module-Build
 # needed for hostname for the defaut config
 BuildRequires: net-tools
 # java buildrequires on fedora
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
 BuildRequires: java-devel >= 1.6
 BuildRequires: mx4j
 BuildRequires: jpackage-utils
+%endif
 BuildRequires: perl-Net-SNMP
 
 Requires: %{name}-common = %{version}
@@ -100,6 +102,7 @@ maintaining a rattling ease of installation and configuration.
 This package contains common files that are used by both the server (munin)
 and node (munin-node) packages. 
 
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
 %package java-plugins
 Group: System Environment/Daemons
 Summary: java-plugins for munin
@@ -108,20 +111,25 @@ BuildArchitectures: noarch
 
 %description java-plugins
 java-plugins for munin-node. 
+%endif
 
 %prep
 %setup -q
 %patch1 -p1
 
 %build
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
 export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$(build-classpath mx4j):$CLASSPATH
+%endif
 make 	CONFIG=dists/redhat/Makefile.config
 
 %install
 
 ## Node
 make	CONFIG=dists/redhat/Makefile.config \
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
 	JAVALIBDIR=%{buildroot}%{_datadir}/java \
+%endif
 	PREFIX=%{buildroot}%{_prefix} \
  	DOCDIR=%{buildroot}%{_docdir}/%{name}-%{version} \
 	MANDIR=%{buildroot}%{_mandir} \
@@ -172,8 +180,11 @@ install -m 0644 %{SOURCE6} %{buildroot}/etc/munin/plugin-conf.d/postfix
 
 # Use font from bitstream-vera-fonts-sans-mono
 rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
+%if 0%{?rhel} > 0 || 0%{?fedora} > 10
 ln -s /usr/share/fonts/dejavu/DejaVuSansMono.ttf $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
-
+%else
+ln -s /usr/share/fonts/bitstream-vera/VeraMono.ttf $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
+%endif 
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -265,11 +276,17 @@ exit 0
 %dir %{perl_vendorlib}/Munin
 %{perl_vendorlib}/Munin/Common
 
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
 %files java-plugins
 %defattr(-, root, root)
 %{_datadir}/java/%{name}-jmx-plugins.jar
+%endif
 
 %changelog
+* Wed Dec 09 2009 Ingvar Hagelund <ingvar@linpro.no> - 1.4.1-2
+- Remove jmx plugins when not supported (like on el4 and older fedora)
+- Correct font path on older distros like el5, el4 and fedora<11
+
 * Fri Dec 04 2009 Kevin Fenzi <kevin@tummy.com> - 1.4.1-1
 - Update to 1.4.1
 
