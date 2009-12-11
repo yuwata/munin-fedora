@@ -1,0 +1,19 @@
+diff -Naur ../munin-1.4.1.orig/master/lib/Munin/Master/GraphOld.pm ./master/lib/Munin/Master/GraphOld.pm
+--- ../munin-1.4.1.orig/master/lib/Munin/Master/GraphOld.pm	2009-12-04 12:13:58.000000000 +0100
++++ ./master/lib/Munin/Master/GraphOld.pm	2009-12-11 13:19:19.825500312 +0100
+@@ -1099,12 +1099,12 @@
+                 push(@complete, '--font', 'LEGEND:7:monospace');
+             }
+             else {
+-                push(@complete, '--font', 'LEGEND:7:$libdir/VeraMono.ttf');
++                push(@complete, '--font', "LEGEND:7:$libdir/VeraMono.ttf");
+             }
+ 
+             push(@complete,
+-                '--font', 'UNIT:7:$libdir/VeraMono.ttf',
+-                '--font', 'AXIS:7:$libdir/VeraMono.ttf');
++                '--font', "UNIT:7:$libdir/VeraMono.ttf",
++                '--font', "AXIS:7:$libdir/VeraMono.ttf");
+         }
+ 
+         push(@complete, '-W', $watermark) if $RRDs::VERSION >= 1.2;

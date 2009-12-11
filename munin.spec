@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.1
-Release:   2%{?dist}
+Release:   3%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -11,6 +11,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Source0: http://downloads.sourceforge.net/sourceforge/munin/%{name}-%{version}.tar.gz
 
 Patch1: munin-1.4.0-config.patch
+Patch2: munin-1.4.1-fontfix.patch
 
 Source1: munin-1.2.4-sendmail-config
 Source2: munin-1.2.5-hddtemp_smartctl-config
@@ -38,7 +39,11 @@ Requires: logrotate
 Requires: /bin/mail
 Requires(pre): shadow-utils
 Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+%if 0%{?rhel} > 5 || 0%{?fedora} > 6
 Requires: dejavu-sans-mono-fonts
+%else
+Requires: bitstream-vera-fonts
+%endif
 
 %description
 Munin is a highly flexible and powerful solution used to create graphs of
@@ -116,6 +121,7 @@ java-plugins for munin-node.
 %prep
 %setup -q
 %patch1 -p1
+%patch2 -p0
 
 %build
 %if 0%{?rhel} > 4 || 0%{?fedora} > 6
@@ -180,7 +186,7 @@ install -m 0644 %{SOURCE6} %{buildroot}/etc/munin/plugin-conf.d/postfix
 
 # Use font from bitstream-vera-fonts-sans-mono
 rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
-%if 0%{?rhel} > 0 || 0%{?fedora} > 10
+%if 0%{?rhel} > 5 || 0%{?fedora} > 6
 ln -s /usr/share/fonts/dejavu/DejaVuSansMono.ttf $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
 %else
 ln -s /usr/share/fonts/bitstream-vera/VeraMono.ttf $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
@@ -283,6 +289,10 @@ exit 0
 %endif
 
 %changelog
+* Fri Dec 11 2009 Ingvar Hagelund <ingvar@linpro.no> - 1.4.1-3
+- More correct fedora and el versions for previous font path fix
+- Added a patch that fixes a quoting bug in GraphOld.pm, fixing fonts on el4
+
 * Wed Dec 09 2009 Ingvar Hagelund <ingvar@linpro.no> - 1.4.1-2
 - Remove jmx plugins when not supported (like on el4 and older fedora)
 - Correct font path on older distros like el5, el4 and fedora<11
