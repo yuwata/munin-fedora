@@ -1,6 +1,6 @@
 Name:      munin
-Version:   1.4.1
-Release:   3%{?dist}
+Version:   1.4.2
+Release:   1%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -11,7 +11,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Source0: http://downloads.sourceforge.net/sourceforge/munin/%{name}-%{version}.tar.gz
 
 Patch1: munin-1.4.0-config.patch
-Patch2: munin-1.4.1-fontfix.patch
+Patch2: munin-1.4.2-fontfix.patch
 
 Source1: munin-1.2.4-sendmail-config
 Source2: munin-1.2.5-hddtemp_smartctl-config
@@ -121,7 +121,9 @@ java-plugins for munin-node.
 %prep
 %setup -q
 %patch1 -p1
+%if 0%{?rhel} < 6 && 0%{?fedora} < 11
 %patch2 -p0
+%endif
 
 %build
 %if 0%{?rhel} > 4 || 0%{?fedora} > 6
@@ -184,13 +186,9 @@ install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
 # install config for postfix under fedora
 install -m 0644 %{SOURCE6} %{buildroot}/etc/munin/plugin-conf.d/postfix
 
-# Use font from bitstream-vera-fonts-sans-mono
-rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
-%if 0%{?rhel} > 5 || 0%{?fedora} > 6
-ln -s /usr/share/fonts/dejavu/DejaVuSansMono.ttf $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
-%else
-ln -s /usr/share/fonts/bitstream-vera/VeraMono.ttf $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
-%endif 
+# Use system font
+rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/DejaVuSansMono.ttf
+rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/DejaVuSans.ttf
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -234,7 +232,6 @@ exit 0
 %{_datadir}/munin/munin-html
 %{_datadir}/munin/munin-limits
 %{_datadir}/munin/munin-update
-%{_datadir}/munin/VeraMono.ttf
 %{perl_vendorlib}/Munin/Master
 %dir /etc/munin/templates
 %dir /etc/munin
@@ -289,6 +286,12 @@ exit 0
 %endif
 
 %changelog
+* Thu Dec 17 2009 Ingvar Hagelund <ingvar@linpro.no> - 1.4.2-1
+- New upstream release
+- Removed upstream packaged fonts
+- Added a patch that makes rrdtool use the system bitstream vera fonts on 
+  rhel < 6 and fedora < 11
+
 * Fri Dec 11 2009 Ingvar Hagelund <ingvar@linpro.no> - 1.4.1-3
 - More correct fedora and el versions for previous font path fix
 - Added a patch that fixes a quoting bug in GraphOld.pm, fixing fonts on el4
