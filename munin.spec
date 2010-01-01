@@ -1,5 +1,5 @@
 Name:      munin
-Version:   1.4.2
+Version:   1.4.3
 Release:   1%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
@@ -286,6 +286,9 @@ exit 0
 %endif
 
 %changelog
+* Thu Dec 31 2009 Kevin Fenzi <kevin@tummy.com> - 1.4.3-1
+- Update to 1.4.3
+
 * Thu Dec 17 2009 Ingvar Hagelund <ingvar@linpro.no> - 1.4.2-1
 - New upstream release
 - Removed upstream packaged fonts
