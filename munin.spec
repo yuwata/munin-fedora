@@ -1,5 +1,5 @@
 Name:      munin
-Version:   1.4.1
+Version:   1.4.3
 Release:   1%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
@@ -11,6 +11,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Source0: http://downloads.sourceforge.net/sourceforge/munin/%{name}-%{version}.tar.gz
 
 Patch1: munin-1.4.0-config.patch
+Patch2: munin-1.4.2-fontfix.patch
 
 Source1: munin-1.2.4-sendmail-config
 Source2: munin-1.2.5-hddtemp_smartctl-config
@@ -24,9 +25,11 @@ BuildRequires: perl-Module-Build
 # needed for hostname for the defaut config
 BuildRequires: net-tools
 # java buildrequires on fedora
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
 BuildRequires: java-devel >= 1.6
 BuildRequires: mx4j
 BuildRequires: jpackage-utils
+%endif
 BuildRequires: perl-Net-SNMP
 
 Requires: %{name}-common = %{version}
@@ -36,7 +39,11 @@ Requires: logrotate
 Requires: /bin/mail
 Requires(pre): shadow-utils
 Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+%if 0%{?rhel} > 5 || 0%{?fedora} > 6
 Requires: dejavu-sans-mono-fonts
+%else
+Requires: bitstream-vera-fonts
+%endif
 
 %description
 Munin is a highly flexible and powerful solution used to create graphs of
@@ -100,6 +107,7 @@ maintaining a rattling ease of installation and configuration.
 This package contains common files that are used by both the server (munin)
 and node (munin-node) packages. 
 
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
 %package java-plugins
 Group: System Environment/Daemons
 Summary: java-plugins for munin
@@ -108,20 +116,28 @@ BuildArchitectures: noarch
 
 %description java-plugins
 java-plugins for munin-node. 
+%endif
 
 %prep
 %setup -q
 %patch1 -p1
+%if 0%{?rhel} < 6 && 0%{?fedora} < 11
+%patch2 -p0
+%endif
 
 %build
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
 export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$(build-classpath mx4j):$CLASSPATH
+%endif
 make 	CONFIG=dists/redhat/Makefile.config
 
 %install
 
 ## Node
 make	CONFIG=dists/redhat/Makefile.config \
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
 	JAVALIBDIR=%{buildroot}%{_datadir}/java \
+%endif
 	PREFIX=%{buildroot}%{_prefix} \
  	DOCDIR=%{buildroot}%{_docdir}/%{name}-%{version} \
 	MANDIR=%{buildroot}%{_mandir} \
@@ -170,10 +186,9 @@ install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
 # install config for postfix under fedora
 install -m 0644 %{SOURCE6} %{buildroot}/etc/munin/plugin-conf.d/postfix
 
-# Use font from bitstream-vera-fonts-sans-mono
-rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
-ln -s /usr/share/fonts/dejavu/DejaVuSansMono.ttf $RPM_BUILD_ROOT/%{_datadir}/munin/VeraMono.ttf
-
+# Use system font
+rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/DejaVuSansMono.ttf
+rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/DejaVuSans.ttf
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -217,7 +232,6 @@ exit 0
 %{_datadir}/munin/munin-html
 %{_datadir}/munin/munin-limits
 %{_datadir}/munin/munin-update
-%{_datadir}/munin/VeraMono.ttf
 %{perl_vendorlib}/Munin/Master
 %dir /etc/munin/templates
 %dir /etc/munin
@@ -265,11 +279,30 @@ exit 0
 %dir %{perl_vendorlib}/Munin
 %{perl_vendorlib}/Munin/Common
 
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
 %files java-plugins
 %defattr(-, root, root)
 %{_datadir}/java/%{name}-jmx-plugins.jar
+%endif
 
 %changelog
+* Thu Dec 31 2009 Kevin Fenzi <kevin@tummy.com> - 1.4.3-1
+- Update to 1.4.3
+
+* Thu Dec 17 2009 Ingvar Hagelund <ingvar@linpro.no> - 1.4.2-1
+- New upstream release
+- Removed upstream packaged fonts
+- Added a patch that makes rrdtool use the system bitstream vera fonts on 
+  rhel < 6 and fedora < 11
+
+* Fri Dec 11 2009 Ingvar Hagelund <ingvar@linpro.no> - 1.4.1-3
+- More correct fedora and el versions for previous font path fix
+- Added a patch that fixes a quoting bug in GraphOld.pm, fixing fonts on el4
+
+* Wed Dec 09 2009 Ingvar Hagelund <ingvar@linpro.no> - 1.4.1-2
+- Remove jmx plugins when not supported (like on el4 and older fedora)
+- Correct font path on older distros like el5, el4 and fedora<11
+
 * Fri Dec 04 2009 Kevin Fenzi <kevin@tummy.com> - 1.4.1-1
 - Update to 1.4.1
 
