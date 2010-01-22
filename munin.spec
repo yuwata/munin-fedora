@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.3
-Release:   1%{?dist}
+Release:   2%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -24,16 +24,22 @@ BuildArchitectures: noarch
 BuildRequires: perl-Module-Build
 # needed for hostname for the defaut config
 BuildRequires: net-tools
+BuildRequires: perl-HTML-Template
+BuildRequires: perl-Log-Log4perl
+BuildRequires: perl-Net-Server
+BuildRequires: perl-Net-SSLeay
+BuildRequires: perl-Net-SNMP
+
 # java buildrequires on fedora
 %if 0%{?rhel} > 4 || 0%{?fedora} > 6
 BuildRequires: java-devel >= 1.6
 BuildRequires: mx4j
 BuildRequires: jpackage-utils
 %endif
-BuildRequires: perl-Net-SNMP
 
 Requires: %{name}-common = %{version}
-Requires: perl-Net-Server perl-Net-SNMP
+Requires: perl-Net-Server 
+Requires: perl-Net-SNMP
 Requires: rrdtool
 Requires: logrotate
 Requires: /bin/mail
@@ -205,7 +211,10 @@ exit 0
 
 %post node
 /sbin/chkconfig --add munin-node
-/usr/sbin/munin-node-configure --shell 2> /dev/null | sh >& /dev/null || :
+# Only run configure on a new install, not an upgrade.
+if [ "$1" = "1" ]; then
+     /usr/sbin/munin-node-configure --shell 2> /dev/null | sh >& /dev/null || :
+fi
 
 %preun node
 test "$1" != 0 || %{_initrddir}/munin-node stop &>/dev/null || :
@@ -240,7 +249,7 @@ exit 0
 %config(noreplace) /etc/munin/munin.conf
 %config(noreplace) /etc/logrotate.d/munin
 %attr(-, munin, munin) %dir /var/lib/munin
-%attr(-, nobody, munin) %dir /var/lib/munin/plugin-state
+%attr(-, munin, munin) %dir /var/lib/munin/plugin-state
 %attr(-, munin, munin) %dir /var/run/munin
 %attr(-, munin, munin) %dir /var/log/munin
 %attr(-, munin, munin) /var/www/html/munin
@@ -286,6 +295,11 @@ exit 0
 %endif
 
 %changelog
+* Sun Jan 17 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.3-2
+- Fix owner on state files. 
+- Add some BuildRequires.
+- Make munin-node-configure only run on install, not upgrade. bug 540687
+
 * Thu Dec 31 2009 Kevin Fenzi <kevin@tummy.com> - 1.4.3-1
 - Update to 1.4.3
 
