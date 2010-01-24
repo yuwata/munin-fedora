@@ -1,0 +1,16 @@
+diff -aur ../munin-1.4.2.orig/master/lib/Munin/Master/GraphOld.pm ./master/lib/Munin/Master/GraphOld.pm
+--- ../munin-1.4.2.orig/master/lib/Munin/Master/GraphOld.pm	2009-12-16 15:53:28.000000000 +0100
++++ ./master/lib/Munin/Master/GraphOld.pm	2009-12-17 11:22:44.753518725 +0100
+@@ -1299,9 +1299,9 @@
+ 	# The RRD 1.2 documentation says you can identify font family
+ 	# names but I never got that to work, but full font path worked
+ 	return (
+-		'--font', "LEGEND:7:$libdir/DejaVuSansMono.ttf",
+-		'--font', "UNIT:7:$libdir/DejaVuSans.ttf",
+-		'--font', "AXIS:7:$libdir/DejaVuSans.ttf",
++		'--font', "LEGEND:7:/usr/share/fonts/bitstream-vera/VeraMono.ttf",
++		'--font', "UNIT:7:/usr/share/fonts/bitstream-vera/VeraMono.ttf",
++		'--font', "AXIS:7:/usr/share/fonts/bitstream-vera/VeraMono.ttf",
+ 	       );
+     } elsif ($RRDs::VERSION >= 1.3) {
+ 	# RRD 1.3 and up
