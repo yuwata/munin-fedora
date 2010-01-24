@@ -1,6 +1,6 @@
 Name:      munin
-Version:   1.2.6
-Release:   4%{?dist}
+Version:   1.4.3
+Release:   2%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -8,25 +8,48 @@ URL:       http://munin.projects.linpro.no/
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-Source0: http://download.sourceforge.net/sourceforge/munin/%{name}_%{version}.tar.gz
+Source0: http://downloads.sourceforge.net/sourceforge/munin/%{name}-%{version}.tar.gz
+
+Patch1: munin-1.4.0-config.patch
+Patch2: munin-1.4.2-fontfix.patch
+
 Source1: munin-1.2.4-sendmail-config
 Source2: munin-1.2.5-hddtemp_smartctl-config
 Source3: munin-node.logrotate
 Source4: munin.logrotate
-Source5: nf_conntrack
 Source6: munin-1.2.6-postfix-config
-Patch1: munin-1.2.4-conf.patch
-Patch2: munin-1.2.5-nf-conntrack.patch
-Patch3: munin-1.2.5-amp-degree.patch
-Patch4: munin-1.2.6-ntp_offset.patch
-Patch5: munin-1.2.6-hddtemp_smartctl-spinup.patch
+
 BuildArchitectures: noarch
-Requires: perl-Net-Server perl-Net-SNMP
+
+BuildRequires: perl-Module-Build
+# needed for hostname for the defaut config
+BuildRequires: net-tools
+BuildRequires: perl-HTML-Template
+BuildRequires: perl-Log-Log4perl
+BuildRequires: perl-Net-Server
+BuildRequires: perl-Net-SSLeay
+BuildRequires: perl-Net-SNMP
+
+# java buildrequires on fedora
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
+BuildRequires: java-devel >= 1.6
+BuildRequires: mx4j
+BuildRequires: jpackage-utils
+%endif
+
+Requires: %{name}-common = %{version}
+Requires: perl-Net-Server 
+Requires: perl-Net-SNMP
 Requires: rrdtool
 Requires: logrotate
 Requires: /bin/mail
 Requires(pre): shadow-utils
 Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+%if 0%{?rhel} > 5 || 0%{?fedora} > 6
+Requires: dejavu-sans-mono-fonts
+%else
+Requires: bitstream-vera-fonts
+%endif
 
 %description
 Munin is a highly flexible and powerful solution used to create graphs of
@@ -45,6 +68,7 @@ RRDtool.
 Group: System Environment/Daemons
 Summary: Network-wide graphing framework (node)
 BuildArchitectures: noarch
+Requires: %{name}-common = %{version}
 Requires: perl-Net-Server
 Requires: procps >= 2.0.7
 Requires: sysstat, /usr/bin/which, hdparm
@@ -75,30 +99,56 @@ SNMP or similar technology.
 Munin is written in Perl, and relies heavily on Tobi Oetiker's excellent
 RRDtool. 
 
+%package common
+Group: System Environment/Daemons
+Summary: Network-wide graphing framework (common files)
+BuildArchitectures: noarch
+Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+
+%description common
+Munin is a highly flexible and powerful solution used to create graphs of
+virtually everything imaginable throughout your network, while still
+maintaining a rattling ease of installation and configuration.
+
+This package contains common files that are used by both the server (munin)
+and node (munin-node) packages. 
+
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
+%package java-plugins
+Group: System Environment/Daemons
+Summary: java-plugins for munin
+Requires: %{name}-node = %{version}
+BuildArchitectures: noarch
+
+%description java-plugins
+java-plugins for munin-node. 
+%endif
+
 %prep
 %setup -q
 %patch1 -p1
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
-%patch5 -p1
+%if 0%{?rhel} < 6 && 0%{?fedora} < 11
+%patch2 -p0
+%endif
 
 %build
-
-# htmldoc and html2text are not available for Red Hat. Quick hack with perl:
-# Skip the PDFs.
-perl -pi -e 's,htmldoc munin,cat munin, or s,html(2text|doc),# $&,' Makefile
-perl -pi -e 's,\$\(INSTALL.+\.(pdf|txt) \$\(DOCDIR,# $&,' Makefile
-make 	CONFIG=dists/redhat/Makefile.config build
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
+export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$(build-classpath mx4j):$CLASSPATH
+%endif
+make 	CONFIG=dists/redhat/Makefile.config
 
 %install
 
 ## Node
-make 	CONFIG=dists/redhat/Makefile.config \
-	DOCDIR=%{buildroot}%{_docdir}/%{name}-%{version} \
+make	CONFIG=dists/redhat/Makefile.config \
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
+	JAVALIBDIR=%{buildroot}%{_datadir}/java \
+%endif
+	PREFIX=%{buildroot}%{_prefix} \
+ 	DOCDIR=%{buildroot}%{_docdir}/%{name}-%{version} \
 	MANDIR=%{buildroot}%{_mandir} \
 	DESTDIR=%{buildroot} \
-    	install-main install-node install-node-plugins install-doc install-man
+	install
 
 mkdir -p %{buildroot}/etc/rc.d/init.d
 mkdir -p %{buildroot}/etc/munin/plugins
@@ -122,17 +172,16 @@ install -m0644 dists/tarball/plugins.conf %{buildroot}/etc/munin/plugin-conf.d/m
 rm -f %{buildroot}/usr/share/munin/plugins/sybase_space
 
 ## Server
-make 	CONFIG=dists/redhat/Makefile.config \
-	DESTDIR=%{buildroot} \
-	install-main
 
 mkdir -p %{buildroot}/var/www/html/munin
 mkdir -p %{buildroot}/var/log/munin
 mkdir -p %{buildroot}/etc/cron.d
+mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}
 
 install -m 0644 dists/redhat/munin.cron.d %{buildroot}/etc/cron.d/munin
-install -m 0644 server/style.css %{buildroot}/var/www/html/munin
 install -m 0644 ChangeLog %{buildroot}%{_docdir}/%{name}-%{version}/ChangeLog
+cp -a master/www/* %{buildroot}/var/www/html/munin/
+
 # install config for sendmail under fedora
 install -m 0644 %{SOURCE1} %{buildroot}/etc/munin/plugin-conf.d/sendmail
 # install config for hddtemp_smartctl
@@ -140,15 +189,12 @@ install -m 0644 %{SOURCE2} %{buildroot}/etc/munin/plugin-conf.d/hddtemp_smartctl
 # install logrotate scripts
 install -m 0644 %{SOURCE3} %{buildroot}/etc/logrotate.d/munin-node
 install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
-# install config for nf_conntrack
-install -m 0644 %{SOURCE5} %{buildroot}/etc/munin/plugin-conf.d/nf_conntrack
 # install config for postfix under fedora
 install -m 0644 %{SOURCE6} %{buildroot}/etc/munin/plugin-conf.d/postfix
 
-# fix MUNIN_LIBDIR issue. 
-sed -i -e 's/\$MUNIN_LIBDIR/\/usr\/share\/munin\//' %{buildroot}%{_datadir}/munin/plugins/ps_
-sed -i -e 's/\$MUNIN_LIBDIR/\/usr\/share\/munin\//' %{buildroot}%{_datadir}/munin/plugins/multips
-sed -i -e 's/\$MUNIN_LIBDIR/\/usr\/share\/munin\//' %{buildroot}%{_datadir}/munin/plugins/df_abs
+# Use system font
+rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/DejaVuSansMono.ttf
+rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/DejaVuSans.ttf
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -165,7 +211,10 @@ exit 0
 
 %post node
 /sbin/chkconfig --add munin-node
-/usr/sbin/munin-node-configure --shell 2> /dev/null | sh >& /dev/null || :
+# Only run configure on a new install, not an upgrade.
+if [ "$1" = "1" ]; then
+     /usr/sbin/munin-node-configure --shell 2> /dev/null | sh >& /dev/null || :
+fi
 
 %preun node
 test "$1" != 0 || %{_initrddir}/munin-node stop &>/dev/null || :
@@ -186,33 +235,25 @@ exit 0
 %doc %{_docdir}/%{name}-%{version}/
 %{_bindir}/munin-cron
 %{_bindir}/munindoc
+%{_bindir}/munin-check
 %dir %{_datadir}/munin
 %{_datadir}/munin/munin-graph
 %{_datadir}/munin/munin-html
 %{_datadir}/munin/munin-limits
 %{_datadir}/munin/munin-update
-%{_datadir}/munin/VeraMono.ttf
-%{perl_vendorlib}/Munin.pm
-%dir %{perl_vendorlib}/Munin
-/var/www/html/munin/cgi/munin-cgi-graph
+%{perl_vendorlib}/Munin/Master
 %dir /etc/munin/templates
 %dir /etc/munin
 %config(noreplace) /etc/munin/templates/*
 %config(noreplace) /etc/cron.d/munin
 %config(noreplace) /etc/munin/munin.conf
 %config(noreplace) /etc/logrotate.d/munin
-
 %attr(-, munin, munin) %dir /var/lib/munin
+%attr(-, munin, munin) %dir /var/lib/munin/plugin-state
 %attr(-, munin, munin) %dir /var/run/munin
 %attr(-, munin, munin) %dir /var/log/munin
-%attr(-, munin, munin) %dir /var/www/html/munin
-%attr(-, root, root) %dir /var/www/html/munin/cgi
-%attr(-, root, root) /var/www/html/munin/style.css
-%doc %{_mandir}/man8/munin-graph*
-%doc %{_mandir}/man8/munin-update*
-%doc %{_mandir}/man8/munin-limits*
-%doc %{_mandir}/man8/munin-html*
-%doc %{_mandir}/man8/munin-cron*
+%attr(-, munin, munin) /var/www/html/munin
+%doc %{_mandir}/man8/munin*
 %doc %{_mandir}/man5/munin.conf*
 
 %files node
@@ -222,15 +263,12 @@ exit 0
 %config(noreplace) /etc/munin/plugin-conf.d/munin-node
 %config(noreplace) /etc/munin/plugin-conf.d/sendmail
 %config(noreplace) /etc/munin/plugin-conf.d/hddtemp_smartctl
-%config(noreplace) /etc/munin/plugin-conf.d/nf_conntrack
 %config(noreplace) /etc/munin/plugin-conf.d/postfix
 %config(noreplace) /etc/logrotate.d/munin-node
-%{perl_vendorlib}/Munin/Plugin.pm
 /etc/rc.d/init.d/munin-node
 %{_sbindir}/munin-run
 %{_sbindir}/munin-node
 %{_sbindir}/munin-node-configure
-%{_sbindir}/munin-node-configure-snmp
 %attr(-, munin, munin) %dir /var/log/munin
 %dir %{_datadir}/munin
 %dir /etc/munin/plugins
@@ -239,14 +277,80 @@ exit 0
 %dir %attr(-, munin, munin) /var/lib/munin/plugin-state
 %{_datadir}/munin/plugins/
 %doc %{_docdir}/%{name}-%{version}/
-%doc %{_mandir}/man8/munin-run*
-%doc %{_mandir}/man8/munin-node*
 %doc %{_mandir}/man5/munin-node*
+%doc %{_mandir}/man3/Munin*
+%doc %{_mandir}/man1/munin*
+%{perl_vendorlib}/Munin/Node
+%{perl_vendorlib}/Munin/Plugin*
+
+%files common
+%defattr(-, root, root)
+%dir %{perl_vendorlib}/Munin
+%{perl_vendorlib}/Munin/Common
+
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
+%files java-plugins
+%defattr(-, root, root)
+%{_datadir}/java/%{name}-jmx-plugins.jar
+%endif
 
 %changelog
-* Wed Feb 18 2009 Andreas Thienemann <andreas@bawue.net> - 1.2.6-4
+* Sun Jan 17 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.3-2
+- Fix owner on state files. 
+- Add some BuildRequires.
+- Make munin-node-configure only run on install, not upgrade. bug 540687
+
+* Thu Dec 31 2009 Kevin Fenzi <kevin@tummy.com> - 1.4.3-1
+- Update to 1.4.3
+
+* Thu Dec 17 2009 Ingvar Hagelund <ingvar@linpro.no> - 1.4.2-1
+- New upstream release
+- Removed upstream packaged fonts
+- Added a patch that makes rrdtool use the system bitstream vera fonts on 
+  rhel < 6 and fedora < 11
+
+* Fri Dec 11 2009 Ingvar Hagelund <ingvar@linpro.no> - 1.4.1-3
+- More correct fedora and el versions for previous font path fix
+- Added a patch that fixes a quoting bug in GraphOld.pm, fixing fonts on el4
+
+* Wed Dec 09 2009 Ingvar Hagelund <ingvar@linpro.no> - 1.4.1-2
+- Remove jmx plugins when not supported (like on el4 and older fedora)
+- Correct font path on older distros like el5, el4 and fedora<11
+
+* Fri Dec 04 2009 Kevin Fenzi <kevin@tummy.com> - 1.4.1-1
+- Update to 1.4.1
+
+* Sat Nov 28 2009 Kevin Fenzi <kevin@tummy.com> - 1.4.0-1
+- Update to final 1.4.0 version
+
+* Sat Nov 21 2009 Kevin Fenzi <kevin@tummy.com> - 1.4.0-0.1.beta
+- Update to beta 1.4.0 version. 
+- Add common subpackage for common files. 
+
+* Sun Nov 08 2009 Kevin Fenzi <kevin@tummy.com> - 1.4.0-0.1.alpha
+- Initial alpha version of 1.4.0 
+
+* Sat Jul 25 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.2.6-10
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
+
+* Wed Feb 25 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.2.6-9
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
+
+* Sat Jan 24 2009 Andreas Thienemann <andreas@bawue.net> - 1.2.6-8
 - Updated dependencies to better reflect plugin requirements
 - Added hddtemp_smartctl patch to only scan for standby state on /dev/[sh]d? devices.
+
+* Sat Jan 17 2009 Kevin Fenzi <kevin@tummy.com> - 1.2.6-7
+- Adjust font requires for new dejavu-sans-mono-fonts name (fixes #480463)
+
+* Mon Jan 12 2009 Kevin Fenzi <kevin@tummy.com> - 1.2.6-6
+- Fix to require the correct font
+
+* Sun Jan 11 2009 Kevin Fenzi <kevin@tummy.com> - 1.2.6-5
+- Switch to using dejavu-fonts instead of bitstream-vera
+
+* Sun Jan 04 2009 Kevin Fenzi <kevin@tummy.com> - 1.2.6-4
+- Require bitstream-vera-fonts-sans-mono for Font (fixes #477428)
 
 * Mon Aug 11 2008 Kevin Fenzi <kevin@tummy.com> - 1.2.6-3
 - Move Munin/Plugin.pm to the node subpackage (fixes #457403)
