@@ -1,6 +1,6 @@
 Name:      munin
-Version:   1.4.3
-Release:   2%{?dist}
+Version:   1.4.4
+Release:   1%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -179,7 +179,6 @@ mkdir -p %{buildroot}/etc/cron.d
 mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}
 
 install -m 0644 dists/redhat/munin.cron.d %{buildroot}/etc/cron.d/munin
-install -m 0644 ChangeLog %{buildroot}%{_docdir}/%{name}-%{version}/ChangeLog
 cp -a master/www/* %{buildroot}/var/www/html/munin/
 
 # install config for sendmail under fedora
@@ -233,6 +232,7 @@ exit 0
 %files
 %defattr(-, root, root)
 %doc %{_docdir}/%{name}-%{version}/
+%doc Announce-1.4.0 ChangeLog COPYING HACKING.pod perltidyrc README RELEASE UPGRADING
 %{_bindir}/munin-cron
 %{_bindir}/munindoc
 %{_bindir}/munin-check
@@ -295,6 +295,11 @@ exit 0
 %endif
 
 %changelog
+* Mon Mar 01 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.4-1
+- Update to 1.4.4
+- Add more doc files. Fixes bug #563824
+- fw_forwarded_local fixed upstream in 1.4.4. Fixes bug #568500
+
 * Sun Jan 17 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.3-2
 - Fix owner on state files. 
 - Add some BuildRequires.
