@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.4
-Release:   1%{?dist}
+Release:   2%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -295,6 +295,9 @@ exit 0
 %endif
 
 %changelog
+* Tue Jun 01 2010 Marcela Maslanova <mmaslano@redhat.com> - 1.4.4-2
+- Mass rebuild with perl-5.12.0
+
 * Mon Mar 01 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.4-1
 - Update to 1.4.4
 - Add more doc files. Fixes bug #563824
