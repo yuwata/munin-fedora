@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.5
-Release:   1%{?dist}
+Release:   2%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -153,6 +153,7 @@ make	CONFIG=dists/redhat/Makefile.config \
 mkdir -p %{buildroot}/etc/rc.d/init.d
 mkdir -p %{buildroot}/etc/munin/plugins
 mkdir -p %{buildroot}/etc/munin/plugin-conf.d
+mkdir -p %{buildroot}/etc/munin/conf.d
 mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/var/lib/munin
 mkdir -p %{buildroot}/var/log/munin
@@ -244,6 +245,7 @@ exit 0
 %{perl_vendorlib}/Munin/Master
 %dir /etc/munin/templates
 %dir /etc/munin
+%dir /etc/munin/conf.d
 %config(noreplace) /etc/munin/templates/*
 %config(noreplace) /etc/cron.d/munin
 %config(noreplace) /etc/munin/munin.conf
@@ -295,6 +297,9 @@ exit 0
 %endif
 
 %changelog
+* Sat Jun 12 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-2
+- Add /etc/munin/conf.d/ dir
+
 * Sat Jun 05 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-1
 - Update to 1.4.5
 
