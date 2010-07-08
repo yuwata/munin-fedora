@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.5
-Release:   2%{?dist}
+Release:   4%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -31,8 +31,8 @@ BuildRequires: perl-Net-SSLeay
 BuildRequires: perl-Net-SNMP
 
 # java buildrequires on fedora
-%if 0%{?rhel} > 4 || 0%{?fedora} > 6
-BuildRequires: java-devel >= 1.6
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6 
+BuildRequires: java-1.6.0-devel
 BuildRequires: mx4j
 BuildRequires: jpackage-utils
 %endif
@@ -152,6 +152,7 @@ make	CONFIG=dists/redhat/Makefile.config \
 
 mkdir -p %{buildroot}/etc/rc.d/init.d
 mkdir -p %{buildroot}/etc/munin/plugins
+mkdir -p %{buildroot}/etc/munin/node.d
 mkdir -p %{buildroot}/etc/munin/plugin-conf.d
 mkdir -p %{buildroot}/etc/munin/conf.d
 mkdir -p %{buildroot}/etc/logrotate.d
@@ -233,7 +234,6 @@ exit 0
 %files
 %defattr(-, root, root)
 %doc %{_docdir}/%{name}-%{version}/
-%doc Announce-1.4.0 ChangeLog COPYING HACKING.pod perltidyrc README RELEASE UPGRADING
 %{_bindir}/munin-cron
 %{_bindir}/munindoc
 %{_bindir}/munin-check
@@ -262,6 +262,7 @@ exit 0
 %defattr(-, root, root)
 %config(noreplace) /etc/munin/munin-node.conf
 %dir /etc/munin/plugin-conf.d
+%dir /etc/munin/node.d
 %config(noreplace) /etc/munin/plugin-conf.d/munin-node
 %config(noreplace) /etc/munin/plugin-conf.d/sendmail
 %config(noreplace) /etc/munin/plugin-conf.d/hddtemp_smartctl
@@ -287,6 +288,7 @@ exit 0
 
 %files common
 %defattr(-, root, root)
+%doc Announce-1.4.0 ChangeLog COPYING HACKING.pod perltidyrc README RELEASE UPGRADING
 %dir %{perl_vendorlib}/Munin
 %{perl_vendorlib}/Munin/Common
 
@@ -297,6 +299,12 @@ exit 0
 %endif
 
 %changelog
+* Wed Jul 07 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-4
+- Move docs to common subpackage to make sure COPYING is installed. 
+
+* Sat Jul 03 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-3
+- Add /etc/munin/node.d dir
+
 * Sat Jun 12 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-2
 - Add /etc/munin/conf.d/ dir
 
