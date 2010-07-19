@@ -1,6 +1,6 @@
 Name:      munin
-Version:   1.4.3
-Release:   2%{?dist}
+Version:   1.4.5
+Release:   4%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -31,8 +31,8 @@ BuildRequires: perl-Net-SSLeay
 BuildRequires: perl-Net-SNMP
 
 # java buildrequires on fedora
-%if 0%{?rhel} > 4 || 0%{?fedora} > 6
-BuildRequires: java-devel >= 1.6
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6 
+BuildRequires: java-1.6.0-devel
 BuildRequires: mx4j
 BuildRequires: jpackage-utils
 %endif
@@ -152,7 +152,9 @@ make	CONFIG=dists/redhat/Makefile.config \
 
 mkdir -p %{buildroot}/etc/rc.d/init.d
 mkdir -p %{buildroot}/etc/munin/plugins
+mkdir -p %{buildroot}/etc/munin/node.d
 mkdir -p %{buildroot}/etc/munin/plugin-conf.d
+mkdir -p %{buildroot}/etc/munin/conf.d
 mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/var/lib/munin
 mkdir -p %{buildroot}/var/log/munin
@@ -179,7 +181,6 @@ mkdir -p %{buildroot}/etc/cron.d
 mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}
 
 install -m 0644 dists/redhat/munin.cron.d %{buildroot}/etc/cron.d/munin
-install -m 0644 ChangeLog %{buildroot}%{_docdir}/%{name}-%{version}/ChangeLog
 cp -a master/www/* %{buildroot}/var/www/html/munin/
 
 # install config for sendmail under fedora
@@ -244,6 +245,7 @@ exit 0
 %{perl_vendorlib}/Munin/Master
 %dir /etc/munin/templates
 %dir /etc/munin
+%dir /etc/munin/conf.d
 %config(noreplace) /etc/munin/templates/*
 %config(noreplace) /etc/cron.d/munin
 %config(noreplace) /etc/munin/munin.conf
@@ -260,6 +262,7 @@ exit 0
 %defattr(-, root, root)
 %config(noreplace) /etc/munin/munin-node.conf
 %dir /etc/munin/plugin-conf.d
+%dir /etc/munin/node.d
 %config(noreplace) /etc/munin/plugin-conf.d/munin-node
 %config(noreplace) /etc/munin/plugin-conf.d/sendmail
 %config(noreplace) /etc/munin/plugin-conf.d/hddtemp_smartctl
@@ -285,6 +288,7 @@ exit 0
 
 %files common
 %defattr(-, root, root)
+%doc Announce-1.4.0 ChangeLog COPYING HACKING.pod perltidyrc README RELEASE UPGRADING
 %dir %{perl_vendorlib}/Munin
 %{perl_vendorlib}/Munin/Common
 
@@ -295,6 +299,26 @@ exit 0
 %endif
 
 %changelog
+* Wed Jul 07 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-4
+- Move docs to common subpackage to make sure COPYING is installed. 
+
+* Sat Jul 03 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-3
+- Add /etc/munin/node.d dir
+
+* Sat Jun 12 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-2
+- Add /etc/munin/conf.d/ dir
+
+* Sat Jun 05 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-1
+- Update to 1.4.5
+
+* Tue Jun 01 2010 Marcela Maslanova <mmaslano@redhat.com> - 1.4.4-2
+- Mass rebuild with perl-5.12.0
+
+* Mon Mar 01 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.4-1
+- Update to 1.4.4
+- Add more doc files. Fixes bug #563824
+- fw_forwarded_local fixed upstream in 1.4.4. Fixes bug #568500
+
 * Sun Jan 17 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.3-2
 - Fix owner on state files. 
 - Add some BuildRequires.
