@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.5
-Release:   4%{?dist}
+Release:   4%{?dist}.1
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -278,6 +278,9 @@ exit 0
 %dir /etc/munin
 %attr(-, munin, munin) %dir /var/lib/munin
 %dir %attr(-, munin, munin) /var/lib/munin/plugin-state
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
+%exclude %{_datadir}/munin/plugins/jmx_
+%endif
 %{_datadir}/munin/plugins/
 %doc %{_docdir}/%{name}-%{version}/
 %doc %{_mandir}/man5/munin-node*
@@ -296,9 +299,13 @@ exit 0
 %files java-plugins
 %defattr(-, root, root)
 %{_datadir}/java/%{name}-jmx-plugins.jar
+%{_datadir}/munin/plugins/jmx_
 %endif
 
 %changelog
+* Wed Aug 11 2010 Todd Zullinger <tmz@pobox.com> - 1.4.5-4.1
+- Move jmx_ plugin to java-plugins package
+
 * Wed Jul 07 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-4
 - Move docs to common subpackage to make sure COPYING is installed. 
 
