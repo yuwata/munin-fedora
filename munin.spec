@@ -270,6 +270,7 @@ exit 0
 %config(noreplace) /etc/munin/plugin-conf.d/sendmail
 %config(noreplace) /etc/munin/plugin-conf.d/hddtemp_smartctl
 %config(noreplace) /etc/munin/plugin-conf.d/postfix
+%config(noreplace) /etc/munin/plugin-conf.d/df
 %config(noreplace) /etc/logrotate.d/munin-node
 /etc/rc.d/init.d/munin-node
 %{_sbindir}/munin-run
