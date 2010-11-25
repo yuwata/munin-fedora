@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.5
-Release:   4%{?dist}.1
+Release:   5%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -18,6 +18,7 @@ Source2: munin-1.2.5-hddtemp_smartctl-config
 Source3: munin-node.logrotate
 Source4: munin.logrotate
 Source6: munin-1.2.6-postfix-config
+Source7: munin-1.4.5-df-config
 
 BuildArchitectures: noarch
 
@@ -192,6 +193,8 @@ install -m 0644 %{SOURCE3} %{buildroot}/etc/logrotate.d/munin-node
 install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
 # install config for postfix under fedora
 install -m 0644 %{SOURCE6} %{buildroot}/etc/munin/plugin-conf.d/postfix
+# install df config to exclude fses we shouldn't try and monitor
+install -m 0644 %{SOURCE7} %{buildroot}/etc/munin/plugin-conf.d/df
 
 # Use system font
 rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/DejaVuSansMono.ttf
@@ -303,6 +306,9 @@ exit 0
 %endif
 
 %changelog
+* Thu Nov 25 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-5
+- Exclude some fses from df plugin. fixes #601410
+
 * Wed Aug 11 2010 Todd Zullinger <tmz@pobox.com> - 1.4.5-4.1
 - Move jmx_ plugin to java-plugins package
 

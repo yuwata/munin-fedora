@@ -1,0 +1,2 @@
+[df]
+env.exclude binfmt_misc rpc_pipefs fuse.gvfs-fuse-daemon
