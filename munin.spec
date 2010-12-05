@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.5
-Release:   5%{?dist}
+Release:   6%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -307,6 +307,9 @@ exit 0
 %endif
 
 %changelog
+* Sun Dec 05 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-6
+- Adjust the df fix to include all the right fses
+
 * Thu Nov 25 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-5
 - Exclude some fses from df plugin. fixes #601410
 
