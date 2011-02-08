@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.5
-Release:   6%{?dist}
+Release:   7%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -307,6 +307,9 @@ exit 0
 %endif
 
 %changelog
+* Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.4.5-7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+
 * Sun Dec 05 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-6
 - Adjust the df fix to include all the right fses
 
