@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.5
-Release:   7%{?dist}
+Release:   8%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -12,6 +12,7 @@ Source0: http://downloads.sourceforge.net/sourceforge/munin/%{name}-%{version}.t
 
 Patch1: munin-1.4.0-config.patch
 Patch2: munin-1.4.2-fontfix.patch
+Patch3: munin-1.4.5-uppercase.patch
 
 Source1: munin-1.2.4-sendmail-config
 Source2: munin-1.2.5-hddtemp_smartctl-config
@@ -131,6 +132,7 @@ java-plugins for munin-node.
 %if 0%{?rhel} < 6 && 0%{?fedora} < 11
 %patch2 -p0
 %endif
+%patch3 -p1
 
 %build
 %if 0%{?rhel} > 4 || 0%{?fedora} > 6
@@ -307,6 +309,9 @@ exit 0
 %endif
 
 %changelog
+* Tue Feb 08 2011 Kevin Fenzi <kevin@tummy.com> - 1.4.5-8
+- Fix issue with uppercase node names returning no data. Fixes #673263
+
 * Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.4.5-7
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
 
