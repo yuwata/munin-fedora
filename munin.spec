@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.5
-Release:   8%{?dist}
+Release:   9%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -20,6 +20,7 @@ Source3: munin-node.logrotate
 Source4: munin.logrotate
 Source6: munin-1.2.6-postfix-config
 Source7: munin-1.4.5-df-config
+Source8: munin-node.service
 
 BuildArchitectures: noarch
 
@@ -33,14 +34,18 @@ BuildRequires: perl-Net-SSLeay
 BuildRequires: perl-Net-SNMP
 
 # java buildrequires on fedora
-%if 0%{?rhel} > 4 || 0%{?fedora} > 6 
+%if 0%{?rhel} > 4 || 0%{?fedora} > 6
 BuildRequires: java-1.6.0-devel
 BuildRequires: mx4j
 BuildRequires: jpackage-utils
 %endif
 
+%if 0%{?rhel} > 6 || 0%{?fedora} > 14
+BuildRequires: systemd-units
+%endif
+
 Requires: %{name}-common = %{version}
-Requires: perl-Net-Server 
+Requires: perl-Net-Server
 Requires: perl-Net-SNMP
 Requires: rrdtool
 Requires: logrotate
@@ -64,7 +69,7 @@ it's aware of for data, which it in turn will use to create graphs and HTML
 pages, suitable for viewing with your graphical web browser of choice.
 
 Munin is written in Perl, and relies heavily on Tobi Oetiker's excellent
-RRDtool. 
+RRDtool.
 
 %package node
 Group: System Environment/Daemons
@@ -99,7 +104,7 @@ such as a switch or a server running another operating system, by using
 SNMP or similar technology.
 
 Munin is written in Perl, and relies heavily on Tobi Oetiker's excellent
-RRDtool. 
+RRDtool.
 
 %package common
 Group: System Environment/Daemons
@@ -113,7 +118,7 @@ virtually everything imaginable throughout your network, while still
 maintaining a rattling ease of installation and configuration.
 
 This package contains common files that are used by both the server (munin)
-and node (munin-node) packages. 
+and node (munin-node) packages.
 
 %if 0%{?rhel} > 4 || 0%{?fedora} > 6
 %package java-plugins
@@ -123,7 +128,7 @@ Requires: %{name}-node = %{version}
 BuildArchitectures: noarch
 
 %description java-plugins
-java-plugins for munin-node. 
+java-plugins for munin-node.
 %endif
 
 %prep
@@ -153,7 +158,11 @@ make	CONFIG=dists/redhat/Makefile.config \
 	DESTDIR=%{buildroot} \
 	install
 
+%if 0%{?rhel} > 6 || 0%{?fedora} > 14
+mkdir -p %{buildroot}/lib/systemd/system/
+%else
 mkdir -p %{buildroot}/etc/rc.d/init.d
+%endif
 mkdir -p %{buildroot}/etc/munin/plugins
 mkdir -p %{buildroot}/etc/munin/node.d
 mkdir -p %{buildroot}/etc/munin/plugin-conf.d
@@ -162,17 +171,21 @@ mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/var/lib/munin
 mkdir -p %{buildroot}/var/log/munin
 
-# 
-# don't enable munin-node by default. 
 #
+# don't enable munin-node by default.
+#
+%if 0%{?rhel} > 6 || 0%{?fedora} > 14
+install -m0644 %{SOURCE8}  %{buildroot}/lib/systemd/system/munin-node.service
+%else
 cat dists/redhat/munin-node.rc | sed -e 's/2345/\-/' > %{buildroot}/etc/rc.d/init.d/munin-node
 chmod 755 %{buildroot}/etc/rc.d/init.d/munin-node
+%endif
 
 install -m0644 dists/tarball/plugins.conf %{buildroot}/etc/munin/plugin-conf.d/munin-node
 
-# 
-# remove the Sybase plugin for now, as they need perl modules 
-# that are not in extras. We can readd them when/if those modules are added. 
+#
+# remove the Sybase plugin for now, as they need perl modules
+# that are not in extras. We can readd them when/if those modules are added.
 #
 rm -f %{buildroot}/usr/share/munin/plugins/sybase_space
 
@@ -223,10 +236,14 @@ if [ "$1" = "1" ]; then
 fi
 
 %preun node
+%if 0%{?rhel} > 6 || 0%{?fedora} > 14
+test "$1" != 0 || %{_bindir}/systemctl disable munin-node.service || :
+%else
 test "$1" != 0 || %{_initrddir}/munin-node stop &>/dev/null || :
 test "$1" != 0 || /sbin/chkconfig --del munin-node
+%endif
 
-# 
+#
 # main package scripts
 #
 %pre
@@ -235,7 +252,7 @@ getent passwd munin >/dev/null || \
 useradd -r -g munin -d /var/lib/munin -s /sbin/nologin \
     -c "Munin user" munin
 exit 0
- 
+
 %files
 %defattr(-, root, root)
 %doc %{_docdir}/%{name}-%{version}/
@@ -274,7 +291,11 @@ exit 0
 %config(noreplace) /etc/munin/plugin-conf.d/postfix
 %config(noreplace) /etc/munin/plugin-conf.d/df
 %config(noreplace) /etc/logrotate.d/munin-node
+%if 0%{?rhel} > 6 || 0%{?fedora} > 14
+/lib/systemd/system/munin-node.service
+%else
 /etc/rc.d/init.d/munin-node
+%endif
 %{_sbindir}/munin-run
 %{_sbindir}/munin-node
 %{_sbindir}/munin-node-configure
@@ -325,7 +346,7 @@ exit 0
 - Move jmx_ plugin to java-plugins package
 
 * Wed Jul 07 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-4
-- Move docs to common subpackage to make sure COPYING is installed. 
+- Move docs to common subpackage to make sure COPYING is installed.
 
 * Sat Jul 03 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.5-3
 - Add /etc/munin/node.d dir
@@ -345,7 +366,7 @@ exit 0
 - fw_forwarded_local fixed upstream in 1.4.4. Fixes bug #568500
 
 * Sun Jan 17 2010 Kevin Fenzi <kevin@tummy.com> - 1.4.3-2
-- Fix owner on state files. 
+- Fix owner on state files.
 - Add some BuildRequires.
 - Make munin-node-configure only run on install, not upgrade. bug 540687
 
@@ -355,7 +376,7 @@ exit 0
 * Thu Dec 17 2009 Ingvar Hagelund <ingvar@linpro.no> - 1.4.2-1
 - New upstream release
 - Removed upstream packaged fonts
-- Added a patch that makes rrdtool use the system bitstream vera fonts on 
+- Added a patch that makes rrdtool use the system bitstream vera fonts on
   rhel < 6 and fedora < 11
 
 * Fri Dec 11 2009 Ingvar Hagelund <ingvar@linpro.no> - 1.4.1-3
@@ -373,11 +394,11 @@ exit 0
 - Update to final 1.4.0 version
 
 * Sat Nov 21 2009 Kevin Fenzi <kevin@tummy.com> - 1.4.0-0.1.beta
-- Update to beta 1.4.0 version. 
-- Add common subpackage for common files. 
+- Update to beta 1.4.0 version.
+- Add common subpackage for common files.
 
 * Sun Nov 08 2009 Kevin Fenzi <kevin@tummy.com> - 1.4.0-0.1.alpha
-- Initial alpha version of 1.4.0 
+- Initial alpha version of 1.4.0
 
 * Sat Jul 25 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.2.6-10
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
@@ -436,13 +457,13 @@ exit 0
 
 * Tue Jun 27 2006 Kevin Fenzi <kevin@tummy.com> - 1.2.4-9
 - Re-enable snmp plugins now that perl-Net-SNMP is available (fixes 196588)
-- Thanks to Herbert Straub <herbert@linuxhacker.at> for patch. 
+- Thanks to Herbert Straub <herbert@linuxhacker.at> for patch.
 - Fix sendmail plugins to look in the right place for the queue
 
 * Sat Apr 22 2006 Kevin Fenzi <kevin@tummy.com> - 1.2.4-8
-- add patch to remove unneeded munin-nagios in cron. 
+- add patch to remove unneeded munin-nagios in cron.
 - add patch to remove buildhostname in munin.conf (fixes #188928)
-- clean up prep section of spec. 
+- clean up prep section of spec.
 
 * Fri Feb 24 2006 Kevin Fenzi <kevin@scrye.com> - 1.2.4-7
 - Remove bogus Provides for perl RRDs (fixes #182702)
@@ -461,7 +482,7 @@ exit 0
 - Fixed libdir messup to allow builds on x86_64
 
 * Mon Dec 12 2005 Kevin Fenzi <kevin@tummy.com> - 1.2.4-2
-- Removed plugins that require Net-SNMP and Sybase 
+- Removed plugins that require Net-SNMP and Sybase
 
 * Tue Dec  6 2005 Kevin Fenzi <kevin@tummy.com> - 1.2.4-1
 - Inital cleanup for fedora-extras
