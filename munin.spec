@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.5
-Release:   11%{?dist}
+Release:   12%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -22,6 +22,7 @@ Source4: munin.logrotate
 Source6: munin-1.2.6-postfix-config
 Source7: munin-1.4.5-df-config
 Source8: munin-node.service
+Source9: %{name}.conf
 
 BuildArchitectures: noarch
 
@@ -162,6 +163,7 @@ make	CONFIG=dists/redhat/Makefile.config \
 
 %if 0%{?rhel} > 6 || 0%{?fedora} > 14
 mkdir -p %{buildroot}/lib/systemd/system/
+mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d
 %else
 mkdir -p %{buildroot}/etc/rc.d/init.d
 %endif
@@ -177,7 +179,8 @@ mkdir -p %{buildroot}/var/log/munin
 # don't enable munin-node by default.
 #
 %if 0%{?rhel} > 6 || 0%{?fedora} > 14
-install -m0644 %{SOURCE8}  %{buildroot}/lib/systemd/system/munin-node.service
+install -m 0644 %{SOURCE8} %{buildroot}/lib/systemd/system/munin-node.service
+install -m 0644 %{SOURCE9} %{buildroot}%{_sysconfdir}/tmpfiles.d/%{name}.conf
 %else
 cat dists/redhat/munin-node.rc | sed -e 's/2345/\-/' > %{buildroot}/etc/rc.d/init.d/munin-node
 chmod 755 %{buildroot}/etc/rc.d/init.d/munin-node
@@ -331,7 +334,16 @@ exit 0
 %{_datadir}/munin/plugins/jmx_
 %endif
 
+%if 0%{?rhel} > 6 || 0%{?fedora} > 14
+%dir %{_localstatedir}/run/%{name}/
+%config(noreplace) %{_sysconfdir}/tmpfiles.d/%{name}.conf
+%endif
+
+
 %changelog
+* Wed Jun 15 2011 D. Johnson <fenris02@fedoraproject.org> - 1.4.5-12
+- Use tmpfiles.d instead of ExecStartPre
+
 * Fri Jun 10 2011 Marcela Mašláňová <mmaslano@redhat.com> - 1.4.5-11
 - Perl 5.14 mass rebuild
 
