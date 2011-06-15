@@ -2,3 +2,4 @@ munin-1.4.5.tar.gz
 /munin-node.service
 /munin-1.4.5.tar.gz
 /munin-1.4.5-rundir-conf.patch
+/munin.conf
