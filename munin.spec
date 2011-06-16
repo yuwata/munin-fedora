@@ -14,6 +14,7 @@ Patch1: munin-1.4.0-config.patch
 Patch2: munin-1.4.2-fontfix.patch
 Patch3: munin-1.4.5-uppercase.patch
 Patch4: munin-1.4.5-rundir-conf.patch
+Patch5: munin-1.4.5-no-such-object.patch
 
 Source1: munin-1.2.4-sendmail-config
 Source2: munin-1.2.5-hddtemp_smartctl-config
@@ -42,7 +43,7 @@ BuildRequires: mx4j
 BuildRequires: jpackage-utils
 %endif
 
-%if 0%{?rhel} > 6 || 0%{?fedora} > 14
+%if 0%{?rhel} > 6 || 0%{?fedora} > 15
 BuildRequires: systemd-units
 %endif
 
@@ -141,27 +142,28 @@ java-plugins for munin-node.
 %endif
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1
 
 %build
 %if 0%{?rhel} > 4 || 0%{?fedora} > 6
 export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$(build-classpath mx4j):$CLASSPATH
 %endif
-make 	CONFIG=dists/redhat/Makefile.config
+make    CONFIG=dists/redhat/Makefile.config
 
 %install
 
 ## Node
-make	CONFIG=dists/redhat/Makefile.config \
+make    CONFIG=dists/redhat/Makefile.config \
 %if 0%{?rhel} > 4 || 0%{?fedora} > 6
-	JAVALIBDIR=%{buildroot}%{_datadir}/java \
+        JAVALIBDIR=%{buildroot}%{_datadir}/java \
 %endif
-	PREFIX=%{buildroot}%{_prefix} \
- 	DOCDIR=%{buildroot}%{_docdir}/%{name}-%{version} \
-	MANDIR=%{buildroot}%{_mandir} \
-	DESTDIR=%{buildroot} \
-	install
+        PREFIX=%{buildroot}%{_prefix} \
+        DOCDIR=%{buildroot}%{_docdir}/%{name}-%{version} \
+        MANDIR=%{buildroot}%{_mandir} \
+        DESTDIR=%{buildroot} \
+        install
 
-%if 0%{?rhel} > 6 || 0%{?fedora} > 14
+%if 0%{?rhel} > 6 || 0%{?fedora} > 15
 mkdir -p %{buildroot}/lib/systemd/system/
 mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d
 %else
@@ -178,7 +180,7 @@ mkdir -p %{buildroot}/var/log/munin
 #
 # don't enable munin-node by default.
 #
-%if 0%{?rhel} > 6 || 0%{?fedora} > 14
+%if 0%{?rhel} > 6 || 0%{?fedora} > 15
 install -m 0644 %{SOURCE8} %{buildroot}/lib/systemd/system/munin-node.service
 install -m 0644 %{SOURCE9} %{buildroot}%{_sysconfdir}/tmpfiles.d/%{name}.conf
 %else
@@ -241,7 +243,7 @@ if [ "$1" = "1" ]; then
 fi
 
 %preun node
-%if 0%{?rhel} > 6 || 0%{?fedora} > 14
+%if 0%{?rhel} > 6 || 0%{?fedora} > 15
 test "$1" != 0 || %{_bindir}/systemctl disable munin-node.service || :
 %else
 test "$1" != 0 || %{_initrddir}/munin-node stop &>/dev/null || :
@@ -296,7 +298,7 @@ exit 0
 %config(noreplace) /etc/munin/plugin-conf.d/postfix
 %config(noreplace) /etc/munin/plugin-conf.d/df
 %config(noreplace) /etc/logrotate.d/munin-node
-%if 0%{?rhel} > 6 || 0%{?fedora} > 14
+%if 0%{?rhel} > 6 || 0%{?fedora} > 15
 /lib/systemd/system/munin-node.service
 %else
 /etc/rc.d/init.d/munin-node
@@ -327,6 +329,11 @@ exit 0
 %dir %{perl_vendorlib}/Munin
 %{perl_vendorlib}/Munin/Common
 
+%if 0%{?rhel} > 6 || 0%{?fedora} > 15
+%dir %{_localstatedir}/run/%{name}/
+%config(noreplace) %{_sysconfdir}/tmpfiles.d/%{name}.conf
+%endif
+
 %if 0%{?rhel} > 4 || 0%{?fedora} > 6
 %files java-plugins
 %defattr(-, root, root)
@@ -334,15 +341,11 @@ exit 0
 %{_datadir}/munin/plugins/jmx_
 %endif
 
-%if 0%{?rhel} > 6 || 0%{?fedora} > 14
-%dir %{_localstatedir}/run/%{name}/
-%config(noreplace) %{_sysconfdir}/tmpfiles.d/%{name}.conf
-%endif
-
 
 %changelog
 * Wed Jun 15 2011 D. Johnson <fenris02@fedoraproject.org> - 1.4.5-12
 - Use tmpfiles.d instead of ExecStartPre
+- Add patch for noSuchObject errors (BZ# 712245)
 
 * Fri Jun 10 2011 Marcela Mašláňová <mmaslano@redhat.com> - 1.4.5-11
 - Perl 5.14 mass rebuild
