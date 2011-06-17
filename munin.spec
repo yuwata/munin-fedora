@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.5
-Release:   12%{?dist}
+Release:   13%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -343,6 +343,9 @@ exit 0
 
 
 %changelog
+* Fri Jun 17 2011 Marcela Mašláňová <mmaslano@redhat.com> - 1.4.5-13
+- Perl mass rebuild
+
 * Wed Jun 15 2011 D. Johnson <fenris02@fedoraproject.org> - 1.4.5-12
 - Use tmpfiles.d instead of ExecStartPre
 - Add patch for noSuchObject errors (BZ# 712245)
