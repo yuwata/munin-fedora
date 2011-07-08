@@ -1,6 +1,6 @@
 Name:      munin
-Version:   1.4.5
-Release:   13%{?dist}
+Version:   1.4.6
+Release:   1%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -9,12 +9,9 @@ URL:       http://munin.projects.linpro.no/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0: http://downloads.sourceforge.net/sourceforge/munin/%{name}-%{version}.tar.gz
+Source10: http://downloads.sourceforge.net/sourceforge/munin/%{name}-%{version}.tar.gz.sha256sum
 
-Patch1: munin-1.4.0-config.patch
 Patch2: munin-1.4.2-fontfix.patch
-Patch3: munin-1.4.5-uppercase.patch
-Patch4: munin-1.4.5-rundir-conf.patch
-Patch5: munin-1.4.5-no-such-object.patch
 
 Source1: munin-1.2.4-sendmail-config
 Source2: munin-1.2.5-hddtemp_smartctl-config
@@ -136,13 +133,9 @@ java-plugins for munin-node.
 
 %prep
 %setup -q
-%patch1 -p1
 %if 0%{?rhel} < 6 && 0%{?fedora} < 11
 %patch2 -p0
 %endif
-%patch3 -p1
-%patch4 -p1
-%patch5 -p1
 
 %build
 %if 0%{?rhel} > 4 || 0%{?fedora} > 6
@@ -343,6 +336,9 @@ exit 0
 
 
 %changelog
+* Wed Jul  8 2011 D. Johnson <fenris02@fedoraproject.org> - 1.4.6-1
+- update to 1.4.6
+
 * Fri Jun 17 2011 Marcela Mašláňová <mmaslano@redhat.com> - 1.4.5-13
 - Perl mass rebuild
 
