@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.6
-Release:   1%{?dist}
+Release:   2%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -336,6 +336,9 @@ exit 0
 
 
 %changelog
+* Wed Jul 20 2011 Petr Sabata <contyk@redhat.com> - 1.4.6-2
+- Perl mass rebuild
+
 * Wed Jul  8 2011 D. Johnson <fenris02@fedoraproject.org> - 1.4.6-1
 - update to 1.4.6
 
