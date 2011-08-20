@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.6
-Release:   3%{?dist}
+Release:   4%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -156,12 +156,6 @@ make    CONFIG=dists/redhat/Makefile.config \
         DESTDIR=%{buildroot} \
         install
 
-%if 0%{?rhel} > 6 || 0%{?fedora} > 15
-mkdir -p %{buildroot}/lib/systemd/system/
-mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d
-%else
-mkdir -p %{buildroot}/etc/rc.d/init.d
-%endif
 mkdir -p %{buildroot}/etc/munin/plugins
 mkdir -p %{buildroot}/etc/munin/node.d
 mkdir -p %{buildroot}/etc/munin/plugin-conf.d
@@ -174,11 +168,17 @@ mkdir -p %{buildroot}/var/log/munin
 # don't enable munin-node by default.
 #
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
+mkdir -p %{buildroot}/lib/systemd/system/
 install -m 0644 %{SOURCE8} %{buildroot}/lib/systemd/system/munin-node.service
-install -m 0644 %{SOURCE9} %{buildroot}%{_sysconfdir}/tmpfiles.d/%{name}.conf
 %else
+mkdir -p %{buildroot}/etc/rc.d/init.d
 cat dists/redhat/munin-node.rc | sed -e 's/2345/\-/' > %{buildroot}/etc/rc.d/init.d/munin-node
 chmod 755 %{buildroot}/etc/rc.d/init.d/munin-node
+%endif
+
+%if 0%{?rhel} > 6 || 0%{?fedora} > 14
+mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d
+install -m 0644 %{SOURCE9} %{buildroot}%{_sysconfdir}/tmpfiles.d/%{name}.conf
 %endif
 
 install -m0644 dists/tarball/plugins.conf %{buildroot}/etc/munin/plugin-conf.d/munin-node
@@ -322,7 +322,7 @@ exit 0
 %dir %{perl_vendorlib}/Munin
 %{perl_vendorlib}/Munin/Common
 
-%if 0%{?rhel} > 6 || 0%{?fedora} > 15
+%if 0%{?rhel} > 6 || 0%{?fedora} > 14
 %dir %{_localstatedir}/run/%{name}/
 %config(noreplace) %{_sysconfdir}/tmpfiles.d/%{name}.conf
 %endif
@@ -336,6 +336,9 @@ exit 0
 
 
 %changelog
+* Sat Aug 20 2011 D. Johnson <fenris02@fedoraproject.org> - 1.4.6-4
+- fix tmpfiles.d file for f15 (BZ# 731181)
+
 * Thu Jul 21 2011 Petr Sabata <contyk@redhat.com> - 1.4.6-3
 - Perl mass rebuild
 
