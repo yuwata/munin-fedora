@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.6
-Release:   4%{?dist}
+Release:   4%{?dist}.1
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -11,6 +11,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Source0: http://downloads.sourceforge.net/sourceforge/munin/%{name}-%{version}.tar.gz
 Source10: http://downloads.sourceforge.net/sourceforge/munin/%{name}-%{version}.tar.gz.sha256sum
 
+Patch1: munin-1.4.6-restorecon.patch
 Patch2: munin-1.4.2-fontfix.patch
 
 Source1: munin-1.2.4-sendmail-config
@@ -133,6 +134,8 @@ java-plugins for munin-node.
 
 %prep
 %setup -q
+%patch1 -p1 
+
 %if 0%{?rhel} < 6 && 0%{?fedora} < 11
 %patch2 -p0
 %endif
@@ -336,6 +339,10 @@ exit 0
 
 
 %changelog
+* Sat Aug 27 2011 Kevin Fenzi <kevin@scrye.com> - 1.4.6-4.1
+- Add patch to run restorecon in the sysvinit script. 
+- This doesn't matter on f16+
+
 * Sat Aug 20 2011 D. Johnson <fenris02@fedoraproject.org> - 1.4.6-4
 - fix tmpfiles.d file for f15 (BZ# 731181)
 
