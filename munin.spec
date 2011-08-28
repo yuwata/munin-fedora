@@ -167,6 +167,9 @@ mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/var/lib/munin
 mkdir -p %{buildroot}/var/log/munin
 
+# Fix default config file
+sed -i 's,/etc/munin/munin-conf.d,/etc/munin/conf.d,' %{buildroot}/etc/munin.conf
+
 #
 # don't enable munin-node by default.
 #
