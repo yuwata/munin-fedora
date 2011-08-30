@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.6
-Release:   4%{?dist}.1
+Release:   4%{?dist}.2
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -248,6 +248,9 @@ test "$1" != 0 || %{_bindir}/systemctl disable munin-node.service || :
 test "$1" != 0 || %{_initrddir}/munin-node stop &>/dev/null || :
 test "$1" != 0 || /sbin/chkconfig --del munin-node
 %endif
+
+%postun node
+find /etc/munin/plugins/ -maxdepth 1 -type l -print0 |xargs -0 rm
 
 #
 # main package scripts
