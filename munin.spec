@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.6
-Release:   4%{?dist}.2
+Release:   4%{?dist}.3
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -134,7 +134,7 @@ java-plugins for munin-node.
 
 %prep
 %setup -q
-%patch1 -p1 
+%patch1 -p1
 
 %if 0%{?rhel} < 6 && 0%{?fedora} < 11
 %patch2 -p0
@@ -345,8 +345,11 @@ exit 0
 
 
 %changelog
+* Mon Oct 17 2011 Stanislav Ochotnicky <sochotnicky@redhat.com> - 1.4.6-4.3
+- Rebuild for java 1.6.0 downgrade (fesco ticket 663)
+
 * Sat Aug 27 2011 Kevin Fenzi <kevin@scrye.com> - 1.4.6-4.1
-- Add patch to run restorecon in the sysvinit script. 
+- Add patch to run restorecon in the sysvinit script.
 - This doesn't matter on f16+
 
 * Sat Aug 20 2011 D. Johnson <fenris02@fedoraproject.org> - 1.4.6-4
