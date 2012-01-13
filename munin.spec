@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.6
-Release:   4%{?dist}.3
+Release:   5%{?dist}.3
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -345,6 +345,9 @@ exit 0
 
 
 %changelog
+* Fri Jan 13 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.4.6-5.3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
+
 * Mon Oct 17 2011 Stanislav Ochotnicky <sochotnicky@redhat.com> - 1.4.6-4.3
 - Rebuild for java 1.6.0 downgrade (fesco ticket 663)
 
