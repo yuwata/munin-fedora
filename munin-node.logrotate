@@ -5,5 +5,5 @@
 	compress
 	copytruncate
 	notifempty
-	create 640 root adm
+	create 644 munin munin
 }

@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.6
-Release:   5%{?dist}.3
+Release:   6%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -345,6 +345,10 @@ exit 0
 
 
 %changelog
+* Fri Jan 20 2012 Kevin Fenzi <kevin@scrye.com> - 1.4.6-6
+- Add PrivateTmp=true to systemd unit file. Fixes bug #782512
+- Change logrotate to use munin user. Fixes bug #771017
+
 * Fri Jan 13 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.4.6-5.3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
 
