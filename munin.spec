@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.6
-Release:   6%{?dist}
+Release:   7%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -216,6 +216,8 @@ install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
 install -m 0644 %{SOURCE6} %{buildroot}/etc/munin/plugin-conf.d/postfix
 # install df config to exclude fses we shouldn't try and monitor
 install -m 0644 %{SOURCE7} %{buildroot}/etc/munin/plugin-conf.d/df
+# Create for BZ 786030
+touch %{buildroot}/var/lib/munin/plugin-state/yum.state
 
 # Use system font
 rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/DejaVuSansMono.ttf
@@ -314,6 +316,7 @@ exit 0
 %dir /etc/munin
 %attr(-, munin, munin) %dir /var/lib/munin
 %dir %attr(-, munin, munin) /var/lib/munin/plugin-state
+%attr(-, munin, munin) /var/lib/munin/plugin-state/yum.state
 %if 0%{?rhel} > 4 || 0%{?fedora} > 6
 %exclude %{_datadir}/munin/plugins/jmx_
 %endif
@@ -345,6 +348,9 @@ exit 0
 
 
 %changelog
+* Tue Jan 31 2012 D. Johnson <fenris02@fedoraproject.org> - 1.4.6-7
+- Create state file for yum-plugin. Fixes BZ #786030.
+
 * Fri Jan 20 2012 Kevin Fenzi <kevin@scrye.com> - 1.4.6-6
 - Add PrivateTmp=true to systemd unit file. Fixes bug #782512
 - Change logrotate to use munin user. Fixes bug #771017
