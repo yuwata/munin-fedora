@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.6
-Release:   7%{?dist}
+Release:   8%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -36,7 +36,7 @@ BuildRequires: perl-Net-SNMP
 
 # java buildrequires on fedora
 %if 0%{?rhel} > 4 || 0%{?fedora} > 6
-BuildRequires: java-1.6.0-devel
+BuildRequires: java-1.7.0-devel
 BuildRequires: mx4j
 BuildRequires: jpackage-utils
 %endif
@@ -348,6 +348,9 @@ exit 0
 
 
 %changelog
+* Wed Feb 22 2012 Kevin Fenzi <kevin@scrye.com> 1.4.6-8
+- Build against java-1.7.0 now. Fixes bug #796345
+
 * Tue Jan 31 2012 D. Johnson <fenris02@fedoraproject.org> - 1.4.6-7
 - Create state file for yum-plugin. Fixes BZ #786030.
 
