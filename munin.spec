@@ -1,6 +1,6 @@
 Name:      munin
-Version:   1.4.6
-Release:   8%{?dist}
+Version:   1.4.7
+Release:   1%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -348,6 +348,9 @@ exit 0
 
 
 %changelog
+* Wed Mar 14 2012 D. Johnson <fenris02@fedoraproject.org> - 1.4.7-1
+- updated for 1.4.7 release
+
 * Wed Feb 22 2012 Kevin Fenzi <kevin@scrye.com> 1.4.6-8
 - Build against java-1.7.0 now. Fixes bug #796345
 
