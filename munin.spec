@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.7
-Release:   1%{?dist}
+Release:   2%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -22,6 +22,7 @@ Source6: munin-1.2.6-postfix-config
 Source7: munin-1.4.5-df-config
 Source8: munin-node.service
 Source9: %{name}.conf
+Source11: munin-node.service-privatetmp
 
 BuildArchitectures: noarch
 
@@ -34,8 +35,15 @@ BuildRequires: perl-Net-Server
 BuildRequires: perl-Net-SSLeay
 BuildRequires: perl-Net-SNMP
 
-# java buildrequires on fedora
-%if 0%{?rhel} > 4 || 0%{?fedora} > 6
+# java buildrequires on fedora < 17 and rhel 
+%if 0%{?rhel} > 4 || 0%{?fedora} < 17
+BuildRequires: java-1.6.0-devel
+BuildRequires: mx4j
+BuildRequires: jpackage-utils
+%endif
+
+# java buildrequires on fedora 17 and higher
+%if 0%{?fedora} > 16
 BuildRequires: java-1.7.0-devel
 BuildRequires: mx4j
 BuildRequires: jpackage-utils
@@ -175,8 +183,18 @@ sed -i 's,/etc/munin/munin-conf.d,/etc/munin/conf.d,' %{buildroot}/etc/munin/mun
 #
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 mkdir -p %{buildroot}/lib/systemd/system/
+%endif
+# Fedora 17 and higer uses privatetmp
+%if 0%{?fedora} > 16
+install -m 0644 %{SOURCE11} %{buildroot}/lib/systemd/system/munin-node.service
+%endif
+
+%if 0%{?fedora} > 15 && 0%{?fedora} < 17
+# Fedora 16 does not use privatetmp
 install -m 0644 %{SOURCE8} %{buildroot}/lib/systemd/system/munin-node.service
-%else
+%endif
+%if 0%{?rhel} > 4 || 0%{?fedora} < 16
+# Fedora 15 and rhel use sysvinit
 mkdir -p %{buildroot}/etc/rc.d/init.d
 cat dists/redhat/munin-node.rc | sed -e 's/2345/\-/' > %{buildroot}/etc/rc.d/init.d/munin-node
 chmod 755 %{buildroot}/etc/rc.d/init.d/munin-node
@@ -237,11 +255,15 @@ useradd -r -g munin -d /var/lib/munin -s /sbin/nologin \
 exit 0
 
 %post node
+# sysvinit only in f15 and older and epel
+%if 0%{?fedora} < 16 || 0%{?rhel} > 4
 /sbin/chkconfig --add munin-node
+%endif
 # Only run configure on a new install, not an upgrade.
 if [ "$1" = "1" ]; then
      /usr/sbin/munin-node-configure --shell 2> /dev/null | sh >& /dev/null || :
 fi
+test "$1" = "2" && mv /etc/munin/plugins /etc/munin/plugins.bak || :
 
 %preun node
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
@@ -252,7 +274,12 @@ test "$1" != 0 || /sbin/chkconfig --del munin-node
 %endif
 
 %postun node
-find /etc/munin/plugins/ -maxdepth 1 -type l -print0 |xargs -0 rm
+if [ "$1" = "0" ]; then
+     find /etc/munin/plugins/ -maxdepth 1 -type l -print0 |xargs -0 rm || :
+fi
+
+%posttrans node
+test "$1" = "0" && mv /etc/munin/plugins.bak /etc/munin/plugins || :
 
 #
 # main package scripts
@@ -348,6 +375,9 @@ exit 0
 
 
 %changelog
+* Sun Apr 15 2012 Kevin Fenzi <kevin@scrye.com> - 1.4.7-2
+- Fix node postun from messing up plugins on upgrade. Works around bug #811867
+
 * Wed Mar 14 2012 D. Johnson <fenris02@fedoraproject.org> - 1.4.7-1
 - updated for 1.4.7 release
 
