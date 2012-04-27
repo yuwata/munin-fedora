@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.7
-Release:   2%{?dist}
+Release:   3%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -237,6 +237,9 @@ install -m 0644 %{SOURCE7} %{buildroot}/etc/munin/plugin-conf.d/df
 # Create for BZ 786030
 touch %{buildroot}/var/lib/munin/plugin-state/yum.state
 
+# Fix path in java plugin
+sed -i 's,/opt/munin/lib/munin-jmx-plugins.jar,/usr/share/java/munin-jmx-plugins.jar,g' %{buildroot}/usr/share/munin/plugins/jmx_
+
 # Use system font
 rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/DejaVuSansMono.ttf
 rm -f $RPM_BUILD_ROOT/%{_datadir}/munin/DejaVuSans.ttf
@@ -263,7 +266,6 @@ exit 0
 if [ "$1" = "1" ]; then
      /usr/sbin/munin-node-configure --shell 2> /dev/null | sh >& /dev/null || :
 fi
-test "$1" = "2" && mv /etc/munin/plugins /etc/munin/plugins.bak || :
 
 %preun node
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
@@ -278,8 +280,11 @@ if [ "$1" = "0" ]; then
      find /etc/munin/plugins/ -maxdepth 1 -type l -print0 |xargs -0 rm || :
 fi
 
-%posttrans node
-test "$1" = "0" && mv /etc/munin/plugins.bak /etc/munin/plugins || :
+%triggerun node -- munin-node < 1.4.7-2
+mv -f %{_sysconfdir}/munin/plugins %{_sysconfdir}/munin/plugins.bak || :
+
+%triggerpostun node -- munin-node < 1.4.7-2
+mv -f %{_sysconfdir}/munin/plugins.bak %{_sysconfdir}/munin/plugins || :
 
 #
 # main package scripts
@@ -312,7 +317,6 @@ exit 0
 %config(noreplace) /etc/logrotate.d/munin
 %attr(-, munin, munin) %dir /var/lib/munin
 %attr(-, munin, munin) %dir /var/lib/munin/plugin-state
-%attr(-, munin, munin) %dir /var/run/munin
 %attr(-, munin, munin) %dir /var/log/munin
 %attr(-, munin, munin) /var/www/html/munin
 %doc %{_mandir}/man8/munin*
@@ -361,8 +365,8 @@ exit 0
 %dir %{perl_vendorlib}/Munin
 %{perl_vendorlib}/Munin/Common
 
-%if 0%{?rhel} > 6 || 0%{?fedora} > 14
 %dir %{_localstatedir}/run/%{name}/
+%if 0%{?rhel} > 6 || 0%{?fedora} > 14
 %config(noreplace) %{_sysconfdir}/tmpfiles.d/%{name}.conf
 %endif
 
@@ -375,6 +379,11 @@ exit 0
 
 
 %changelog
+* Tue Apr 24 2012 Kevin Fenzi <kevin@scrye.com> - 1.4.7-3
+- A better for for 811867 with triggers. 
+- Fix directory conflict. Fixes bug #816340
+- Fix path in java plugin. Fixes bug #816570
+
 * Sun Apr 15 2012 Kevin Fenzi <kevin@scrye.com> - 1.4.7-2
 - Fix node postun from messing up plugins on upgrade. Works around bug #811867
 
