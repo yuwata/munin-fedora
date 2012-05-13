@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.7
-Release:   3%{?dist}
+Release:   4%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -365,7 +365,7 @@ exit 0
 %dir %{perl_vendorlib}/Munin
 %{perl_vendorlib}/Munin/Common
 
-%dir %{_localstatedir}/run/%{name}/
+%attr(-, munin, munin) %dir %{_localstatedir}/run/%{name}/
 %if 0%{?rhel} > 6 || 0%{?fedora} > 14
 %config(noreplace) %{_sysconfdir}/tmpfiles.d/%{name}.conf
 %endif
@@ -379,6 +379,9 @@ exit 0
 
 
 %changelog
+* Sun May 13 2012 Kevin Fenzi <kevin@scrye.com> - 1.4.7-4
+- Fix ownership on /var/run/munin. Fixes bug #821204
+
 * Tue Apr 24 2012 Kevin Fenzi <kevin@scrye.com> - 1.4.7-3
 - A better for for 811867 with triggers. 
 - Fix directory conflict. Fixes bug #816340
