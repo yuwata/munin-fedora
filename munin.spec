@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.7
-Release:   4%{?dist}
+Release:   5%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -13,6 +13,8 @@ Source10: http://downloads.sourceforge.net/sourceforge/munin/%{name}-%{version}.
 
 Patch1: munin-1.4.6-restorecon.patch
 Patch2: munin-1.4.2-fontfix.patch
+# BZ#822992 http://munin-monitoring.org/attachment/ticket/1215/GCTime.java.patch
+Patch3: GCTime.java.patch
 
 Source1: munin-1.2.4-sendmail-config
 Source2: munin-1.2.5-hddtemp_smartctl-config
@@ -23,6 +25,10 @@ Source7: munin-1.4.5-df-config
 Source8: munin-node.service
 Source9: %{name}.conf
 Source11: munin-node.service-privatetmp
+# BZ#747663 http://munin-monitoring.org/ticket/1155
+%if 0%{?rhel} < 6 && 0%{?fedora} < 11
+Source12: cpuspeed.in.rev1243
+%endif
 
 BuildArchitectures: noarch
 
@@ -86,6 +92,8 @@ Summary: Network-wide graphing framework (node)
 BuildArchitectures: noarch
 Requires: %{name}-common = %{version}
 Requires: perl-Net-Server
+# BZ#822894
+Requires: perl-Net-CIDR
 Requires: procps >= 2.0.7
 Requires: sysstat, /usr/bin/which, hdparm
 Requires(pre): shadow-utils
@@ -143,10 +151,15 @@ java-plugins for munin-node.
 %prep
 %setup -q
 %patch1 -p1
+%if 0%{?rhel} < 6 && 0%{?fedora} < 11
+install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
+%endif
 
 %if 0%{?rhel} < 6 && 0%{?fedora} < 11
 %patch2 -p0
 %endif
+
+%patch3 -p0
 
 %build
 %if 0%{?rhel} > 4 || 0%{?fedora} > 6
@@ -236,6 +249,19 @@ install -m 0644 %{SOURCE6} %{buildroot}/etc/munin/plugin-conf.d/postfix
 install -m 0644 %{SOURCE7} %{buildroot}/etc/munin/plugin-conf.d/df
 # Create for BZ 786030
 touch %{buildroot}/var/lib/munin/plugin-state/yum.state
+# Append for BZ# 746083
+cat - >> %{buildroot}/etc/munin/plugin-conf.d/munin-node <<EOT.node
+[diskstats]
+user munin
+
+[iostat_ios]
+user munin
+EOT.node
+
+# BZ#821912 - Move .htaccess to apache config to allow easier user-access changes.
+mkdir -p %{buildroot}/etc/httpd/conf.d
+sed -e 's/# </</g' %{buildroot}/var/www/html/munin/.htaccess > %{buildroot}/etc/httpd/conf.d/munin.conf
+rm %{buildroot}/var/www/html/munin/.htaccess
 
 # Fix path in java plugin
 sed -i 's,/opt/munin/lib/munin-jmx-plugins.jar,/usr/share/java/munin-jmx-plugins.jar,g' %{buildroot}/usr/share/munin/plugins/jmx_
@@ -315,6 +341,7 @@ exit 0
 %config(noreplace) /etc/cron.d/munin
 %config(noreplace) /etc/munin/munin.conf
 %config(noreplace) /etc/logrotate.d/munin
+%config(noreplace) /etc/httpd/conf.d/munin.conf
 %attr(-, munin, munin) %dir /var/lib/munin
 %attr(-, munin, munin) %dir /var/lib/munin/plugin-state
 %attr(-, munin, munin) %dir /var/log/munin
@@ -379,6 +406,13 @@ exit 0
 
 
 %changelog
+* Fri May 18 2012 D. Johnson <fenris02@fedoraproject.org> - 1.4.7-5
+- BZ# 822992 Including GCTime.java.patch
+- BZ# 747663 Include older cpuspeed.in for older kernels
+- BZ# 822894 Requires: perl-Net-CIDR
+- BZ# 746083 Append user=munin for munin-node plugins
+- BZ# 821912 Move htaccess to httpd/conf.d/munin.conf for easier administration
+
 * Sun May 13 2012 Kevin Fenzi <kevin@scrye.com> - 1.4.7-4
 - Fix ownership on /var/run/munin. Fixes bug #821204
 
