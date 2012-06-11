@@ -1,6 +1,6 @@
 Name:      munin
 Version:   1.4.7
-Release:   5%{?dist}
+Release:   6%{?dist}
 Summary:   Network-wide graphing framework (grapher/gatherer)
 License:   GPLv2 and Bitstream Vera
 Group:     System Environment/Daemons
@@ -406,6 +406,9 @@ exit 0
 
 
 %changelog
+* Mon Jun 11 2012 Petr Pisar <ppisar@redhat.com> - 1.4.7-6
+- Perl 5.16 rebuild
+
 * Fri May 18 2012 D. Johnson <fenris02@fedoraproject.org> - 1.4.7-5
 - BZ# 822992 Including GCTime.java.patch
 - BZ# 747663 Include older cpuspeed.in for older kernels
