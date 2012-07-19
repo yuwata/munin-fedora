@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.2
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -223,7 +223,7 @@ sed -e 's/# </</g' %{buildroot}/var/www/html/munin/.htaccess > %{buildroot}%{_sy
 rm %{buildroot}/var/www/html/munin/.htaccess
 
 # install cron script
-mkdir -p %{buildroot}/etc/cron.d/munin
+mkdir -p %{buildroot}/etc/cron.d
 install -m 0644 dists/redhat/munin.cron.d %{buildroot}/etc/cron.d/munin
 
 # ensure file exists
@@ -290,9 +290,10 @@ exit 0
 
 %files
 %defattr(-, root, root)
-%doc %{_mandir}/man1/munin*
-%doc %{_mandir}/man3/Munin::*
-%doc %{_mandir}/man5/munin*
+%doc %{_mandir}/man1/munindoc*
+%doc %{_mandir}/man1/munin-sched*
+%doc %{_mandir}/man3/Munin::Master*
+%doc %{_mandir}/man5/munin.conf*
 %doc %{_mandir}/man8/munin*
 %dir %{_sysconfdir}/munin
 %dir %{_sysconfdir}/munin/static
@@ -302,7 +303,7 @@ exit 0
 %dir %{_datadir}/munin/plugins
 %dir /var/www/html/munin
 %dir /var/www/html/munin/cgi
-%config(noreplace) %{_sysconfdir}/cron.d/munin
+%config(noreplace) %attr(0644,root,root) %{_sysconfdir}/cron.d/munin
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/munin.conf
 %config(noreplace) %{_sysconfdir}/logrotate.d/munin
 %config(noreplace) %{_sysconfdir}/munin/munin.conf
@@ -312,9 +313,6 @@ exit 0
 %attr(0755,root,root) %{_bindir}/munin-check
 %attr(0755,root,root) %{_bindir}/munin-cron
 %attr(0755,root,root) %{_bindir}/munindoc
-%attr(0755,root,root) %{_sbindir}/munin-node
-%attr(0755,root,root) %{_sbindir}/munin-node-configure
-%attr(0755,root,root) %{_sbindir}/munin-run
 %attr(0755,root,root) %{_sbindir}/munin-sched
 %{_datadir}/munin/munin*
 %{perl_vendorlib}/Munin/Master/*.pm
@@ -324,11 +322,12 @@ exit 0
 
 %files node
 %defattr(-, root, root)
-# %%doc %{_docdir}/%{name}-%{version}/
+%doc %{_mandir}/man1/munin-node*
+%doc %{_mandir}/man1/munin-run*
+%doc %{_mandir}/man3/Munin::Common*
+%doc %{_mandir}/man3/Munin::Node*
+%doc %{_mandir}/man3/Munin::Plugin*
 %doc %{_mandir}/man5/munin-node*
-%doc %{_mandir}/man3/Munin*
-%doc %{_mandir}/man1/munin*
-# %%dir %{_sysconfdir}/munin/plugin-conf.d
 %dir %{_sysconfdir}/munin/node.d
 %dir %{_sysconfdir}/munin/plugins
 %dir %{_sysconfdir}/munin
@@ -338,11 +337,10 @@ exit 0
 %dir %attr(-, munin, munin) /var/log/munin
 %config(noreplace) %{_sysconfdir}/logrotate.d/munin-node
 %config(noreplace) %{_sysconfdir}/munin/munin-node.conf
-# %%config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/*
 /lib/systemd/system/munin-node.service
-%{_sbindir}/munin-run
-%{_sbindir}/munin-node
-%{_sbindir}/munin-node-configure
+%attr(0755,root,root) %{_sbindir}/munin-run
+%attr(0755,root,root) %{_sbindir}/munin-node
+%attr(0755,root,root) %{_sbindir}/munin-node-configure
 %attr(-, munin, munin) /var/lib/munin/plugin-state/yum.state
 %exclude %{_datadir}/munin/plugins/jmx_
 %{_datadir}/munin/plugins/
@@ -366,6 +364,9 @@ exit 0
 
 
 %changelog
+* Thu Jul 19 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.2-2
+- fixed conflicts
+
 * Thu Jul 14 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.2-1
 - updated to 2.0.2
 
