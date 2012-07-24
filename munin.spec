@@ -1,6 +1,6 @@
 Name:           munin
-Version:        2.0.2
-Release:        4%{?dist}
+Version:        2.0.3
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -368,8 +368,9 @@ exit 0
 
 
 %changelog
-* Tue Jul 24 2012 fenris02@fedoraproject.org - 2.0.2-4
+* Tue Jul 24 2012 fenris02@fedoraproject.org - 2.0.3-1
 - Adjust default conf.d entry.
+- updated to 2.0.3
 
 * Fri Jul 20 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.0.2-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
