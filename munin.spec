@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.2
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -73,7 +73,7 @@ Requires:       perl(Time::HiRes)
 
 # Munin node java monitor requires
 #Requires:       java-jmx
-# java buildrequires on fedora < 17 and rhel 
+# java buildrequires on fedora < 17 and rhel
 %if 0%{?rhel} > 4 || 0%{?fedora} < 17
 BuildRequires:  java-1.6.0-devel
 BuildRequires:  mx4j
@@ -233,6 +233,9 @@ touch %{buildroot}/var/lib/munin/plugin-state/yum.state
 mkdir -p %{buildroot}/lib/systemd/system
 install -m 0644 %{SOURCE11} %{buildroot}/lib/systemd/system/munin-node.service
 
+# Fix default config file
+sed -i 's,/etc/munin/munin-conf.d,/etc/munin/conf.d,' %{buildroot}/etc/munin/munin.conf
+mkdir -p %{buildroot}/etc/munin/conf.d
 mkdir -p %{buildroot}/etc/munin/node.d
 
 # Remove plugins that are missing deps
@@ -296,6 +299,7 @@ exit 0
 %doc %{_mandir}/man5/munin.conf*
 %doc %{_mandir}/man8/munin*
 %dir %{_sysconfdir}/munin
+%dir %{_sysconfdir}/munin/conf.d
 %dir %{_sysconfdir}/munin/static
 %dir %{_sysconfdir}/munin/templates
 %dir %{_sysconfdir}/munin/templates/partial
@@ -364,6 +368,9 @@ exit 0
 
 
 %changelog
+* Tue Jul 24 2012 fenris02@fedoraproject.org - 2.0.2-4
+- Adjust default conf.d entry.
+
 * Fri Jul 20 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.0.2-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
 
