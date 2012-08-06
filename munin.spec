@@ -1,11 +1,12 @@
 Name:           munin
 Version:        2.0.4
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
 License:        GPLv2
 URL:            http://munin-monitoring.org/
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Source0:        http://downloads.sourceforge.net/sourceforge/munin/%{name}-%{version}.tar.gz
 Source10:       http://downloads.sourceforge.net/sourceforge/munin/%{name}-%{version}.tar.gz.sha256sum
 Source1:        munin-1.2.4-sendmail-config
@@ -22,6 +23,7 @@ Source12:       cpuspeed.in.rev1243
 
 Patch1:         munin-1.4.6-restorecon.patch
 Patch2:         munin-1.4.2-fontfix.patch
+Patch4:         munin-2.0.4-Utils-cluck.patch
 
 BuildArch:      noarch
 
@@ -41,11 +43,8 @@ BuildRequires:  perl(Test::Pod::Coverage)
 BuildRequires:  perl(Time::HiRes)
 BuildRequires:  perl(Net::SSLeay)
 BuildRequires:  perl(HTML::Template)
-%if 0%{?rhel} > 5 || 0%{?fedora} > 11
-BuildRequires:  perl(Log::Log4perl) >= 1.18
-%else
+# RHEL6+ BuildRequires:  perl(Log::Log4perl) >= 1.18
 BuildRequires:  perl(Log::Log4perl)
-%endif
 Requires(pre):  shadow-utils
 Requires:       perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 
@@ -59,7 +58,12 @@ Requires:       perl(File::Copy::Recursive)
 Requires:       perl(Getopt::Long)
 Requires:       perl(HTML::Template)
 Requires:       perl(IO::Socket::INET6)
-Requires:       perl(Log::Log4perl) >= 1.18
+# RHEL6+ BuildRequires:  perl(Log::Log4perl) >= 1.18
+%if 0%{?rhel} > 5 || 0%{?fedora} > 11
+BuildRequires:  perl(Log::Log4perl) >= 1.18
+%else
+BuildRequires:  perl(Log::Log4perl)
+%endif
 Requires:       perl(Net::Server)
 Requires:       perl(Net::SNMP)
 Requires:       perl(Net::SSLeay)
@@ -104,7 +108,7 @@ BuildRequires:  jpackage-utils
 %endif
 
 # CGI requires
-Requires:       dejavu-sans-mono-fonts
+# RHEL6+ Requires:       dejavu-sans-mono-fonts
 
 
 %description
@@ -212,6 +216,7 @@ sed -i -e '
 install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
 %endif
 
+%patch4 -p0
 
 %build
 export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$(build-classpath mx4j):$CLASSPATH
@@ -412,7 +417,7 @@ exit 0
 %dir %{_datadir}/munin
 %dir %{_datadir}/munin/plugins
 %attr(0755,munin,munin) %dir /var/www/html/munin
-%attr(0755,root,root) %dir /var/www/html/munin/static
+%attr(0755,munin,munin) %dir /var/www/html/munin/static
 %attr(0755,root,root) %dir /var/www/html/munin/cgi
 %config(noreplace) %attr(0644,root,root) %{_sysconfdir}/cron.d/munin
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/munin.conf
@@ -434,7 +439,7 @@ exit 0
 %{perl_vendorlib}/Munin/Master/*.pm
 %attr(0755,root,munin) /var/www/html/munin/cgi/munin-cgi-graph
 %attr(0755,root,munin) /var/www/html/munin/cgi/munin-cgi-html
-%attr(0644,root,root) /var/www/html/munin/static/*
+%attr(0644,munin,munin) /var/www/html/munin/static/*
 
 
 %files node
@@ -498,6 +503,9 @@ exit 0
 
 
 %changelog
+* Sun Aug 05 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.4-2
+- Changing permissions on html directories to minimize cron messages.
+
 * Sat Aug 04 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.4-1
 - updated to 2.0.4
 - backported el6 packaging items
@@ -529,7 +537,7 @@ exit 0
 - Fix ownership on /var/run/munin. Fixes bug #821204
 
 * Tue Apr 24 2012 Kevin Fenzi <kevin@scrye.com> - 1.4.7-3
-- A better for for 811867 with triggers. 
+- A better for for 811867 with triggers.
 - Fix directory conflict. Fixes bug #816340
 - Fix path in java plugin. Fixes bug #816570
 
