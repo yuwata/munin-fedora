@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.4
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -81,6 +81,7 @@ BuildRequires:  systemd-units
 %endif
 
 # Munin node requires
+Requires:       perl(Cache::Memcached)
 Requires:       perl(Crypt::DES)
 Requires:       perl(Digest::HMAC)
 Requires:       perl(Digest::SHA1)
@@ -503,6 +504,12 @@ exit 0
 
 
 %changelog
+* Tue Aug 07 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.4-3
+- BZ# 823533 "hddtemp_smartctl plugin has a bug" - upstream patched
+- BZ# 825820 Munin memcache plugin requires "perl(Cache::Memcached)"
+- BZ# 834055 Munin updates changing permissions, conflicts with what munin-check does
+- BZ# 812893,812894,839786,840496 - updated to munin2
+
 * Sun Aug 05 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.4-2
 - Changing permissions on html directories to minimize cron messages.
 
