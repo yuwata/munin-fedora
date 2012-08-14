@@ -1,6 +1,6 @@
 Name:           munin
-Version:        2.0.4
-Release:        3%{?dist}
+Version:        2.0.5
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -504,6 +504,10 @@ exit 0
 
 
 %changelog
+* Tue Aug 14 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.5-1
+- Updated to 2.0.5
+- BZ# 847132 / upstream 1180, ACPI thermal information changed with 3.x kernels
+
 * Tue Aug 07 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.4-3
 - BZ# 823533 "hddtemp_smartctl plugin has a bug" - upstream patched
 - BZ# 825820 Munin memcache plugin requires "perl(Cache::Memcached)"
