@@ -24,6 +24,7 @@ Source12:       cpuspeed.in.rev1243
 Patch1:         munin-1.4.6-restorecon.patch
 Patch2:         munin-1.4.2-fontfix.patch
 Patch4:         munin-2.0.4-Utils-cluck.patch
+Patch5:         acpi-2.0.5.patch
 
 BuildArch:      noarch
 
@@ -218,6 +219,7 @@ install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
 %endif
 
 %patch4 -p0
+%patch5 -p0
 
 %build
 export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$(build-classpath mx4j):$CLASSPATH
@@ -506,7 +508,7 @@ exit 0
 %changelog
 * Tue Aug 14 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.5-1
 - Updated to 2.0.5
-- BZ# 847132 / upstream 1180, ACPI thermal information changed with 3.x kernels
+- BZ# 603344 / upstream 1180, ACPI thermal information changed with 3.x kernels
 
 * Tue Aug 07 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.4-3
 - BZ# 823533 "hddtemp_smartctl plugin has a bug" - upstream patched
