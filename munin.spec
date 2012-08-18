@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.5
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -20,6 +20,10 @@ Source9:        %{name}.conf
 Source11:       munin-node.service-privatetmp
 # BZ#747663 http://munin-monitoring.org/ticket/1155
 Source12:       cpuspeed.in.rev1243
+Source13:       linux-init.d_munin-asyncd.in
+Source14:       munin-asyncd.service
+Source15:       munin-fcgi-html.service
+Source16:       munin-fcgi-graph.service
 
 Patch1:         munin-1.4.6-restorecon.patch
 Patch2:         munin-1.4.2-fontfix.patch
@@ -220,6 +224,7 @@ install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
 
 %patch4 -p0
 %patch5 -p0
+install -c %{SOURCE13} ./resources/
 
 %build
 export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$(build-classpath mx4j):$CLASSPATH
@@ -277,9 +282,15 @@ mkdir -p %{buildroot}/lib/systemd/system
 # Fedora 17 and higer uses privatetmp
 %if 0%{?fedora} == 16
 install -m 0644 %{SOURCE8} %{buildroot}/lib/systemd/system/munin-node.service
+install -m 0644 %{SOURCE14} %{buildroot}/lib/systemd/system/munin-asyncd.service
+install -m 0644 %{SOURCE15} %{buildroot}/lib/systemd/system/munin-fcgi-html.service
+install -m 0644 %{SOURCE16} %{buildroot}/lib/systemd/system/munin-fcgi-graph.service
 %endif
 %if 0%{?fedora} > 16
 install -m 0644 %{SOURCE11} %{buildroot}/lib/systemd/system/munin-node.service
+install -m 0644 %{SOURCE14} %{buildroot}/lib/systemd/system/munin-asyncd.service
+install -m 0644 %{SOURCE15} %{buildroot}/lib/systemd/system/munin-fcgi-html.service
+install -m 0644 %{SOURCE16} %{buildroot}/lib/systemd/system/munin-fcgi-graph.service
 %endif
 
 # install tmpfiles.d entry
@@ -337,6 +348,9 @@ cp -r %{buildroot}/etc/munin/static %{buildroot}/var/www/html/munin/
 # Remove plugins that are missing deps
 rm %{buildroot}/usr/share/munin/plugins/sybase_space
 
+# Move munin-asyncd to /usr/sbin/ (FHS)
+mv %{buildroot}/%{_datadir}/munin/munin-asyncd %{buildroot}/%{_sbindir}/munin-asyncd
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -375,6 +389,9 @@ fi
 %preun node
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 test "$1" != 0 || /bin/systemctl disable munin-node.service || :
+test "$1" != 0 || /bin/systemctl disable munin-asyncd.service || :
+test "$1" != 0 || /bin/systemctl disable munin-fcgi-html.service || :
+test "$1" != 0 || /bin/systemctl disable munin-fcgi-graph.service || :
 %else
 test "$1" != 0 || %{_initrddir}/munin-node stop &>/dev/null || :
 test "$1" != 0 || /sbin/chkconfig --del munin-node
@@ -443,6 +460,8 @@ exit 0
 %attr(0755,root,munin) /var/www/html/munin/cgi/munin-cgi-graph
 %attr(0755,root,munin) /var/www/html/munin/cgi/munin-cgi-html
 %attr(0644,munin,munin) /var/www/html/munin/static/*
+/lib/systemd/system/munin-fcgi-html.service
+/lib/systemd/system/munin-fcgi-graph.service
 
 
 %files node
@@ -469,8 +488,10 @@ exit 0
 %config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/sendmail
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 /lib/systemd/system/munin-node.service
+/lib/systemd/system/munin-asyncd.service
 %else
 /etc/rc.d/init.d/munin-node
+/etc/rc.d/init.d/munin-asyncd
 %endif
 %attr(0755,root,root) %{_sbindir}/munin-run
 %attr(0755,root,root) %{_sbindir}/munin-node
@@ -485,7 +506,7 @@ exit 0
 %files async
 %defattr(-,root,root)
 %{_datadir}/munin/munin-async
-%{_datadir}/munin/munin-asyncd
+%{_sbindir}/munin-asyncd
 
 
 %files common
@@ -506,6 +527,9 @@ exit 0
 
 
 %changelog
+* Tue Aug 14 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.5-2
+- Added munin-asyncd init files
+
 * Tue Aug 14 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.5-1
 - Updated to 2.0.5
 - BZ# 603344 / upstream 1180, ACPI thermal information changed with 3.x kernels

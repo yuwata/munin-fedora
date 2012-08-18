@@ -1,6 +1,7 @@
 [Unit]
 Description=Munin Node Server.
-After=syslog.target network.target
+Documentation=man:munin-node
+After=network.target
 
 [Service]
 Type=forking

@@ -5,7 +5,7 @@
  
  
 -ATZ="$(echo /proc/acpi/thermal_zone/*/temperature)"
-+ATZ="[ -e /proc/acpi/thermal_zone/*/temperature ] && echo /proc/acpi/thermal_zone/*/temperature || echo /sys/class/thermal/thermal_zone*/trip*temp"
++ATZ="[ -e /proc/acpi/thermal_zone/*/temperature ] && echo /proc/acpi/thermal_zone/*/temperature || echo /sys/class/thermal/thermal_zone*/trip*temp | cut -c1-2"
  
  do_ () { # Fetch
      echo "$ATZ" | tr ' ' '\n' | awk -F'[ /\t]*' '{
