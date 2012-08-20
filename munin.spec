@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.5
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -304,6 +304,7 @@ install -m 0644 %{SOURCE9} %{buildroot}%{_sysconfdir}/tmpfiles.d/%{name}.conf
 mkdir -p %{buildroot}/etc/rc.d/init.d
 cat dists/redhat/munin-node.rc | sed -e 's/2345/\-/' > %{buildroot}/etc/rc.d/init.d/munin-node
 chmod 755 %{buildroot}/etc/rc.d/init.d/munin-node
+install -m 0755 %{SOURCE13} %{buildroot}/etc/rc.d/init.d/munin-asyncd
 %endif
 
 # Fix default config file
@@ -460,8 +461,10 @@ exit 0
 %attr(0755,root,munin) /var/www/html/munin/cgi/munin-cgi-graph
 %attr(0755,root,munin) /var/www/html/munin/cgi/munin-cgi-html
 %attr(0644,munin,munin) /var/www/html/munin/static/*
+%if 0%{?rhel} > 6 || 0%{?fedora} > 15
 /lib/systemd/system/munin-fcgi-html.service
 /lib/systemd/system/munin-fcgi-graph.service
+%endif
 
 
 %files node
@@ -490,8 +493,8 @@ exit 0
 /lib/systemd/system/munin-node.service
 /lib/systemd/system/munin-asyncd.service
 %else
-/etc/rc.d/init.d/munin-node
-/etc/rc.d/init.d/munin-asyncd
+%{_sysconfdir}/rc.d/init.d/munin-node
+%{_sysconfdir}/rc.d/init.d/munin-asyncd
 %endif
 %attr(0755,root,root) %{_sbindir}/munin-run
 %attr(0755,root,root) %{_sbindir}/munin-node
@@ -527,6 +530,9 @@ exit 0
 
 
 %changelog
+* Mon Aug 20 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.5-3
+- rebuilt for epel
+
 * Tue Aug 14 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.5-2
 - Added munin-asyncd init files
 
