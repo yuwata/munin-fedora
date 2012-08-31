@@ -1,6 +1,6 @@
 Name:           munin
-Version:        2.0.5
-Release:        3%{?dist}
+Version:        2.0.6
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -530,6 +530,10 @@ exit 0
 
 
 %changelog
+* Fri Aug 31 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.6-1
+- BZ# 851375 Replace @@GOODSH@@ in epel init scripts
+- BZ# 849831,849834 CVE-2012-3512 munin: insecure state file handling, munin->root privilege [fedora-all]
+
 * Mon Aug 20 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.5-3
 - rebuilt for epel
 
