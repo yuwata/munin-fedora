@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.6
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -29,6 +29,7 @@ Patch1:         munin-1.4.6-restorecon.patch
 Patch2:         munin-1.4.2-fontfix.patch
 Patch4:         munin-2.0.4-Utils-cluck.patch
 Patch5:         acpi-2.0.5.patch
+Patch6:         munin-2.0.6-OS.pm.7f32c59.patch
 
 BuildArch:      noarch
 
@@ -224,10 +225,12 @@ install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
 
 %patch4 -p0
 %patch5 -p0
+%patch6 -p0
 install -c %{SOURCE13} ./resources/
 
 %build
 export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$(build-classpath mx4j):$CLASSPATH
+echo 'DBDIRNODE  = $(DESTDIR)/var/lib/munin-node' >> dists/redhat/Makefile.config
 make    CONFIG=dists/redhat/Makefile.config
 
 # Convert to utf-8
@@ -352,6 +355,8 @@ rm %{buildroot}/usr/share/munin/plugins/sybase_space
 # Move munin-asyncd to /usr/sbin/ (FHS)
 mv %{buildroot}/%{_datadir}/munin/munin-asyncd %{buildroot}/%{_sbindir}/munin-asyncd
 
+# Create DBDIRNODE
+mkdir -p %{buildroot}/var/lib/munin-node/plugin-state
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -437,6 +442,7 @@ exit 0
 %dir %{_sysconfdir}/munin/templates/partial
 %dir %{_datadir}/munin
 %dir %{_datadir}/munin/plugins
+%dir %attr(0775,root,munin) /var/lib/munin/plugin-state
 %attr(0755,munin,munin) %dir /var/www/html/munin
 %attr(0755,munin,munin) %dir /var/www/html/munin/static
 %attr(0755,root,root) %dir /var/www/html/munin/cgi
@@ -480,7 +486,7 @@ exit 0
 %dir %{_sysconfdir}/munin
 %dir %{_datadir}/munin
 %dir %attr(-,munin,munin) /var/lib/munin
-%dir %attr(0775,nobody,munin) /var/lib/munin/plugin-state
+%dir %attr(0775,nobody,munin) /var/lib/munin-node/plugin-state
 %dir %attr(-,munin,munin) /var/log/munin
 %config(noreplace) %{_sysconfdir}/logrotate.d/munin-node
 %config(noreplace) %{_sysconfdir}/munin/munin-node.conf
@@ -530,6 +536,10 @@ exit 0
 
 
 %changelog
+* Sat Sep 08 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.6-2
+- node: remove File::Path as it is no longer needed.
+- added DBDIRNODE for munin-node.
+
 * Fri Aug 31 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.6-1
 - BZ# 851375 Replace @@GOODSH@@ in epel init scripts
 - BZ# 849831,849834 CVE-2012-3512 munin: insecure state file handling, munin->root privilege [fedora-all]
