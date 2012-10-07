@@ -1,0 +1,11 @@
+--- munin-2.0.7/plugins/node.d/http_loadtime.in.orig	2012-10-02 17:46:50.000000000 -0500
++++ munin-2.0.7/plugins/node.d/http_loadtime.in	2012-10-06 20:38:57.373464780 -0500
+@@ -67,7 +67,7 @@
+ trap "rm -rf $TMPDIR" EXIT
+ 
+ cd $TMPDIR || exit 1
+-loadtime=$(time -p wget -p --no-cache --delete-after $target -q 2>&1 | awk '/^real / { print $2 }')
++loadtime=$(/usr/bin/time -p wget -p --no-cache --delete-after $target -q 2>&1 | awk '/^real / { print $2 }')
+ cd ..
+ 
+ echo "loadtime.value $loadtime"
