@@ -1,6 +1,6 @@
 Name:           munin
-Version:        2.0.6
-Release:        2%{?dist}
+Version:        2.0.7
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -24,12 +24,14 @@ Source13:       linux-init.d_munin-asyncd.in
 Source14:       munin-asyncd.service
 Source15:       munin-fcgi-html.service
 Source16:       munin-fcgi-graph.service
+Source17:       munin.cron.d
+Source18:       munin-node.rc
 
 Patch1:         munin-1.4.6-restorecon.patch
 Patch2:         munin-1.4.2-fontfix.patch
 Patch4:         munin-2.0.4-Utils-cluck.patch
 Patch5:         acpi-2.0.5.patch
-Patch6:         munin-2.0.6-OS.pm.7f32c59.patch
+Patch6:         munin-2.0.7-http_loadtime.patch
 
 BuildArch:      noarch
 
@@ -211,13 +213,31 @@ java-plugins for munin-node.
 
 %prep
 %setup -q -n munin-%{version}
-sed -i -e '
-  s/^USER       := \(.*\)/USER       := nobody/;
-  s/^GROUP      := \(.*\)/GROUP      := nobody/;
-  s/^CHOWN      := \(.*\)/CHOWN      := true/;
-  ' dists/redhat/Makefile.config
 
-%patch1 -p1
+# Upstream already removed this dir
+rm -rf ./dists/redhat
+
+sed -i -e '
+  s,^CGIDIR     = \(.*\),CGIDIR     = $(HTMLDIR)/cgi,;
+  s,^CHGRP      := \(.*\),CHGRP      := echo Not done: chgrp,;
+  s,^CHMOD      := \(.*\),CHMOD      := echo Not done: chmod,;
+  s,^CHOWN      := \(.*\),CHOWN      := echo Not done: chown,;
+  s,^CONFDIR    = \(.*\),CONFDIR    = $(DESTDIR)/etc/munin,;
+  s,^DBDIR      = \(.*\),DBDIR      = $(DESTDIR)/var/lib/munin,;
+  s,^DBDIRNODE  = \(.*\),DBDIRNODE  = $(DESTDIR)/var/opt/munin-node,;
+  s,^DOCDIR     = \(.*\),DOCDIR     = $(PREFIX)/share/doc/munin-$(VERSION),;
+  s,^GROUP      := \(.*\),GROUP      := nobody,;
+  s,^HOSTNAME   = \(.*\),HOSTNAME    = localhost.localdomain,;
+  s,^HTMLDIR    = \(.*\),HTMLDIR    = $(DESTDIR)/var/www/html/munin,;
+  s,^LIBDIR     = \(.*\),LIBDIR     = $(PREFIX)/share/munin,;
+  s,^LOGDIR     = \(.*\),LOGDIR     = $(DESTDIR)/var/log/munin,;
+  s,^PERL       := \(.*\),PERL       := /usr/bin/env perl,;
+  s,^PLUGSTATE  = \(.*\),PLUGSTATE  = $(DBDIR)/plugin-state,;
+  s,^PREFIX     = \(.*\),PREFIX     = $(DESTDIR)/usr,;
+  s,^USER       := \(.*\),USER       := nobody,;
+  ' Makefile.config
+
+#%%patch1 -p1
 %if 0%{?rhel} < 6 && 0%{?fedora} < 11
 #%%patch2 -p0
 install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
@@ -228,10 +248,10 @@ install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
 %patch6 -p0
 install -c %{SOURCE13} ./resources/
 
+
 %build
 export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$(build-classpath mx4j):$CLASSPATH
-echo 'DBDIRNODE  = $(DESTDIR)/var/lib/munin-node' >> dists/redhat/Makefile.config
-make    CONFIG=dists/redhat/Makefile.config
+make    CONFIG=Makefile.config
 
 # Convert to utf-8
 for file in Announce-2.0 COPYING ChangeLog Checklist HACKING.pod README RELEASE UPGRADING UPGRADING-1.4; do
@@ -250,7 +270,7 @@ done
 rm -rf ${buildroot}
 
 ## Node
-make    CONFIG=dists/redhat/Makefile.config \
+make    CONFIG=Makefile.config \
         DESTDIR=%{buildroot} \
         DOCDIR=%{buildroot}%{_docdir}/%{name}-%{version} \
         JAVALIBDIR=%{buildroot}%{_datadir}/java \
@@ -259,7 +279,7 @@ make    CONFIG=dists/redhat/Makefile.config \
         install
 
 # Remove fonts
-rm %{buildroot}/usr/share/munin/DejaVuSans*.ttf
+#rm %{buildroot}/usr/share/munin/DejaVuSans*.ttf
 
 # install logrotate scripts
 mkdir -p %{buildroot}/etc/logrotate.d
@@ -268,15 +288,12 @@ install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
 
 # BZ#821912 - Move .htaccess to apache config to allow easier user-access changes.
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
-sed -e 's/# </</g' %{buildroot}/var/www/html/munin/.htaccess > %{buildroot}%{_sysconfdir}/httpd/conf.d/munin.conf
-rm %{buildroot}/var/www/html/munin/.htaccess
+#sed -e 's/# </</g' %{buildroot}/var/www/html/munin/.htaccess > %{buildroot}%{_sysconfdir}/httpd/conf.d/munin.conf
+#rm %{buildroot}/var/www/html/munin/.htaccess
 
 # install cron script
 mkdir -p %{buildroot}/etc/cron.d
-install -m 0644 dists/redhat/munin.cron.d %{buildroot}/etc/cron.d/munin
-
-# ensure file exists
-touch %{buildroot}/var/lib/munin/plugin-state/yum.state
+install -m 0644 %{SOURCE17} %{buildroot}/etc/cron.d/munin
 
 # SystemD
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
@@ -305,15 +322,17 @@ install -m 0644 %{SOURCE9} %{buildroot}%{_sysconfdir}/tmpfiles.d/%{name}.conf
 # Fedora 15 and rhel use sysvinit / upstart
 %if 0%{?rhel} > 4 || 0%{?fedora} < 16
 mkdir -p %{buildroot}/etc/rc.d/init.d
-cat dists/redhat/munin-node.rc | sed -e 's/2345/\-/' > %{buildroot}/etc/rc.d/init.d/munin-node
+cat %{SOURCE18} | sed -e 's/2345/\-/' > %{buildroot}/etc/rc.d/init.d/munin-node
 chmod 755 %{buildroot}/etc/rc.d/init.d/munin-node
 install -m 0755 %{SOURCE13} %{buildroot}/etc/rc.d/init.d/munin-asyncd
 %endif
 
 # Fix default config file
-sed -i 's,/etc/munin/munin-conf.d,/etc/munin/conf.d,' %{buildroot}/etc/munin/munin.conf
+#sed -i 's,/etc/munin/munin-conf.d,/etc/munin/conf.d,' %{buildroot}/etc/munin/munin.conf
 mkdir -p %{buildroot}/etc/munin/conf.d
+mkdir -p %{buildroot}/etc/munin/plugin-conf.d
 mkdir -p %{buildroot}/etc/munin/node.d
+mkdir -p %{buildroot}/etc/munin/plugin-node.d
 
 # install config for sendmail under fedora
 install -m 0644 %{SOURCE1} %{buildroot}/etc/munin/plugin-conf.d/sendmail
@@ -331,9 +350,6 @@ install -m 0644 %{SOURCE6} %{buildroot}/etc/munin/plugin-conf.d/postfix
 # install df config to exclude fses we shouldn't try and monitor
 install -m 0644 %{SOURCE7} %{buildroot}/etc/munin/plugin-conf.d/df
 
-# Create for BZ 786030
-touch %{buildroot}/var/lib/munin/plugin-state/yum.state
-
 # Append for BZ# 746083
 cat - >> %{buildroot}/etc/munin/plugin-conf.d/munin-node <<EOT.node
 [diskstats]
@@ -343,20 +359,16 @@ user munin
 user munin
 EOT.node
 
-# Fix path in java plugin
-sed -i 's,/opt/munin/lib/munin-jmx-plugins.jar,/usr/share/java/munin-jmx-plugins.jar,g' %{buildroot}/usr/share/munin/plugins/jmx_
-
 # Preload static html files
+mkdir -p %{buildroot}/var/www/html/munin/
 cp -r %{buildroot}/etc/munin/static %{buildroot}/var/www/html/munin/
-
-# Remove plugins that are missing deps
-rm %{buildroot}/usr/share/munin/plugins/sybase_space
-
-# Move munin-asyncd to /usr/sbin/ (FHS)
-mv %{buildroot}/%{_datadir}/munin/munin-asyncd %{buildroot}/%{_sbindir}/munin-asyncd
 
 # Create DBDIRNODE
 mkdir -p %{buildroot}/var/lib/munin-node/plugin-state
+
+# Create for BZ 786030
+touch %{buildroot}/var/lib/munin/plugin-state/yum.state
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -394,13 +406,23 @@ fi
 
 %preun node
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
-test "$1" != 0 || /bin/systemctl disable munin-node.service || :
-test "$1" != 0 || /bin/systemctl disable munin-asyncd.service || :
-test "$1" != 0 || /bin/systemctl disable munin-fcgi-html.service || :
-test "$1" != 0 || /bin/systemctl disable munin-fcgi-graph.service || :
+# Newer installs use systemd
+  %if 0%{?systemd_preun:1}
+    %systemd_preun rarpd.service
+  %else
+    if [ "$1" = 0 ]; then
+      for svc in node asyncd fcgi-html fcgi-graph; do
+        /bin/systemctl --no-reload disable munin-${svc}.service >/dev/null 2>&1 || :
+        /bin/systemctl stop munin-${svc}.service >/dev/null 2>&1 || :
+      done
+    fi
+  %endif
 %else
-test "$1" != 0 || %{_initrddir}/munin-node stop &>/dev/null || :
-test "$1" != 0 || /sbin/chkconfig --del munin-node
+# Older installs use sysvinit / upstart
+if [ "$1" = 0 ]; then
+  %{_initrddir}/munin-node stop &>/dev/null || :
+  /sbin/chkconfig --del munin-node
+fi
 %endif
 
 %postun node
@@ -447,7 +469,7 @@ exit 0
 %attr(0755,munin,munin) %dir /var/www/html/munin/static
 %attr(0755,root,root) %dir /var/www/html/munin/cgi
 %config(noreplace) %attr(0644,root,root) %{_sysconfdir}/cron.d/munin
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/munin.conf
+#%config(noreplace) %{_sysconfdir}/httpd/conf.d/munin.conf
 %config(noreplace) %{_sysconfdir}/logrotate.d/munin
 %config(noreplace) %{_sysconfdir}/munin/munin.conf
 %config(noreplace) %{_sysconfdir}/munin/static/*
@@ -463,7 +485,7 @@ exit 0
 %{_datadir}/munin/munin-limits
 %{_datadir}/munin/munin-storable2datafile
 %{_datadir}/munin/munin-update
-%{perl_vendorlib}/Munin/Master/*.pm
+#%{perl_vendorlib}/Munin/Master/*.pm
 %attr(0755,root,munin) /var/www/html/munin/cgi/munin-cgi-graph
 %attr(0755,root,munin) /var/www/html/munin/cgi/munin-cgi-html
 %attr(0644,munin,munin) /var/www/html/munin/static/*
@@ -497,10 +519,8 @@ exit 0
 %config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/sendmail
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 /lib/systemd/system/munin-node.service
-/lib/systemd/system/munin-asyncd.service
 %else
 %{_sysconfdir}/rc.d/init.d/munin-node
-%{_sysconfdir}/rc.d/init.d/munin-asyncd
 %endif
 %attr(0755,root,root) %{_sbindir}/munin-run
 %attr(0755,root,root) %{_sbindir}/munin-node
@@ -508,25 +528,27 @@ exit 0
 %attr(-,munin,munin) /var/lib/munin/plugin-state/yum.state
 %exclude %{_datadir}/munin/plugins/jmx_
 %{_datadir}/munin/plugins/
-%{perl_vendorlib}/Munin/Node
-%{perl_vendorlib}/Munin/Plugin*
 
 
 %files async
 %defattr(-,root,root)
 %{_datadir}/munin/munin-async
-%{_sbindir}/munin-asyncd
+%if 0%{?rhel} > 6 || 0%{?fedora} > 15
+/lib/systemd/system/munin-asyncd.service
+%else
+%{_sysconfdir}/rc.d/init.d/munin-asyncd
+%endif
 
 
 %files common
 %defattr(-,root,root)
 %doc Announce-2.0 COPYING ChangeLog Checklist HACKING.pod README RELEASE UPGRADING UPGRADING-1.4
-%dir %{perl_vendorlib}/Munin
+#%dir %{perl_vendorlib}/Munin
 %dir %attr(-,munin,munin) %{_localstatedir}/run/%{name}/
 %if 0%{?rhel} > 6 || 0%{?fedora} > 14
 %config(noreplace) %{_sysconfdir}/tmpfiles.d/%{name}.conf
 %endif
-%{perl_vendorlib}/Munin/Common
+#%{perl_vendorlib}/Munin/Common
 
 
 %files java-plugins
@@ -536,6 +558,15 @@ exit 0
 
 
 %changelog
+* Sun Oct 07 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-1
+- Upstream to 2.0.7
+- BZ# 850401 Use systemd_preun when available (f18)
+- BZ# 863490 [patch] http_load plugin uses wrong time command
+- BZ# 862469 Move asyncd init files to asyncd subpackage
+
+* Tue Sep 11 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.6-3
+- Upstream removed dists/redhat/
+
 * Sat Sep 08 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.6-2
 - node: remove File::Path as it is no longer needed.
 - added DBDIRNODE for munin-node.
