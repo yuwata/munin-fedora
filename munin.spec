@@ -27,8 +27,8 @@ Source16:       munin-fcgi-graph.service
 Source17:       munin.cron.d
 Source18:       munin-node.rc
 
-Patch1:         munin-1.4.6-restorecon.patch
-Patch2:         munin-1.4.2-fontfix.patch
+#Patch1:         munin-1.4.6-restorecon.patch
+#Patch2:         munin-1.4.2-fontfix.patch
 Patch4:         munin-2.0.4-Utils-cluck.patch
 Patch5:         acpi-2.0.5.patch
 Patch6:         munin-2.0.7-http_loadtime.patch
@@ -215,7 +215,7 @@ java-plugins for munin-node.
 %setup -q -n munin-%{version}
 
 # Upstream already removed this dir
-rm -rf ./dists/redhat
+#rm -rf ./dists/redhat
 
 sed -i -e '
   s,^CGIDIR     = \(.*\),CGIDIR     = $(HTMLDIR)/cgi,;
@@ -225,13 +225,14 @@ sed -i -e '
   s,^CONFDIR    = \(.*\),CONFDIR    = $(DESTDIR)/etc/munin,;
   s,^DBDIR      = \(.*\),DBDIR      = $(DESTDIR)/var/lib/munin,;
   s,^DBDIRNODE  = \(.*\),DBDIRNODE  = $(DESTDIR)/var/opt/munin-node,;
-  s,^DOCDIR     = \(.*\),DOCDIR     = $(PREFIX)/share/doc/munin-$(VERSION),;
+  s,^DOCDIR     = \(.*\),DOCDIR     = $(DESTDIR)%{_datadir}/doc/munin-$(VERSION),;
   s,^GROUP      := \(.*\),GROUP      := nobody,;
   s,^HOSTNAME   = \(.*\),HOSTNAME    = localhost.localdomain,;
   s,^HTMLDIR    = \(.*\),HTMLDIR    = $(DESTDIR)/var/www/html/munin,;
-  s,^LIBDIR     = \(.*\),LIBDIR     = $(PREFIX)/share/munin,;
+  s,^LIBDIR     = \(.*\),LIBDIR     = $(DESTDIR)%{_datadir}/munin,;
   s,^LOGDIR     = \(.*\),LOGDIR     = $(DESTDIR)/var/log/munin,;
   s,^PERL       := \(.*\),PERL       := /usr/bin/env perl,;
+  s,^PERLSITELIB := \(.*\),PERLSITELIB := %{perl_vendorlib},;
   s,^PLUGSTATE  = \(.*\),PLUGSTATE  = $(DBDIR)/plugin-state,;
   s,^PREFIX     = \(.*\),PREFIX     = $(DESTDIR)/usr,;
   s,^USER       := \(.*\),USER       := nobody,;
@@ -279,7 +280,7 @@ make    CONFIG=Makefile.config \
         install
 
 # Remove fonts
-#rm %{buildroot}/usr/share/munin/DejaVuSans*.ttf
+rm %{buildroot}%{_datadir}/munin/DejaVuSans*.ttf
 
 # install logrotate scripts
 mkdir -p %{buildroot}/etc/logrotate.d
@@ -288,8 +289,8 @@ install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
 
 # BZ#821912 - Move .htaccess to apache config to allow easier user-access changes.
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
-#sed -e 's/# </</g' %{buildroot}/var/www/html/munin/.htaccess > %{buildroot}%{_sysconfdir}/httpd/conf.d/munin.conf
-#rm %{buildroot}/var/www/html/munin/.htaccess
+sed -e 's/# </</g' %{buildroot}/var/www/html/munin/.htaccess > %{buildroot}%{_sysconfdir}/httpd/conf.d/munin.conf
+rm %{buildroot}/var/www/html/munin/.htaccess
 
 # install cron script
 mkdir -p %{buildroot}/etc/cron.d
@@ -363,6 +364,9 @@ EOT.node
 mkdir -p %{buildroot}/var/www/html/munin/
 cp -r %{buildroot}/etc/munin/static %{buildroot}/var/www/html/munin/
 
+# Remove plugins that are missing deps
+rm %{buildroot}/usr/share/munin/plugins/sybase_space
+
 # Create DBDIRNODE
 mkdir -p %{buildroot}/var/lib/munin-node/plugin-state
 
@@ -371,7 +375,7 @@ touch %{buildroot}/var/lib/munin/plugin-state/yum.state
 
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 
 #
@@ -469,7 +473,7 @@ exit 0
 %attr(0755,munin,munin) %dir /var/www/html/munin/static
 %attr(0755,root,root) %dir /var/www/html/munin/cgi
 %config(noreplace) %attr(0644,root,root) %{_sysconfdir}/cron.d/munin
-#%config(noreplace) %{_sysconfdir}/httpd/conf.d/munin.conf
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/munin.conf
 %config(noreplace) %{_sysconfdir}/logrotate.d/munin
 %config(noreplace) %{_sysconfdir}/munin/munin.conf
 %config(noreplace) %{_sysconfdir}/munin/static/*
@@ -485,7 +489,7 @@ exit 0
 %{_datadir}/munin/munin-limits
 %{_datadir}/munin/munin-storable2datafile
 %{_datadir}/munin/munin-update
-#%{perl_vendorlib}/Munin/Master/*.pm
+%{perl_vendorlib}/Munin/Master/*.pm
 %attr(0755,root,munin) /var/www/html/munin/cgi/munin-cgi-graph
 %attr(0755,root,munin) /var/www/html/munin/cgi/munin-cgi-html
 %attr(0644,munin,munin) /var/www/html/munin/static/*
@@ -528,11 +532,13 @@ exit 0
 %attr(-,munin,munin) /var/lib/munin/plugin-state/yum.state
 %exclude %{_datadir}/munin/plugins/jmx_
 %{_datadir}/munin/plugins/
+%{perl_vendorlib}/Munin/Node
+%{perl_vendorlib}/Munin/Plugin*
 
 
 %files async
 %defattr(-,root,root)
-%{_datadir}/munin/munin-async
+%{_datadir}/munin/munin-async*
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 /lib/systemd/system/munin-asyncd.service
 %else
@@ -543,12 +549,12 @@ exit 0
 %files common
 %defattr(-,root,root)
 %doc Announce-2.0 COPYING ChangeLog Checklist HACKING.pod README RELEASE UPGRADING UPGRADING-1.4
-#%dir %{perl_vendorlib}/Munin
+%dir %{perl_vendorlib}/Munin
 %dir %attr(-,munin,munin) %{_localstatedir}/run/%{name}/
 %if 0%{?rhel} > 6 || 0%{?fedora} > 14
 %config(noreplace) %{_sysconfdir}/tmpfiles.d/%{name}.conf
 %endif
-#%{perl_vendorlib}/Munin/Common
+%{perl_vendorlib}/Munin/Common
 
 
 %files java-plugins
