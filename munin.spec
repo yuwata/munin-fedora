@@ -245,7 +245,7 @@ install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
 
 %patch4 -p0
 %patch5 -p0
-%patch6 -p0
+%patch6 -p1
 install -c %{SOURCE13} ./resources/
 
 
