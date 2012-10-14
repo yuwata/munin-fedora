@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.7
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -231,7 +231,7 @@ sed -i -e '
   s,^HTMLDIR    = \(.*\),HTMLDIR    = $(DESTDIR)/var/www/html/munin,;
   s,^LIBDIR     = \(.*\),LIBDIR     = $(DESTDIR)%{_datadir}/munin,;
   s,^LOGDIR     = \(.*\),LOGDIR     = $(DESTDIR)/var/log/munin,;
-  s,^PERL       := \(.*\),PERL       := /usr/bin/env perl,;
+  s,^PERL       := \(.*\),PERL       := /usr/bin/perl,;
   s,^PERLSITELIB := \(.*\),PERLSITELIB := %{perl_vendorlib},;
   s,^PLUGSTATE  = \(.*\),PLUGSTATE  = $(DBDIR)/plugin-state,;
   s,^PREFIX     = \(.*\),PREFIX     = $(DESTDIR)/usr,;
@@ -564,6 +564,9 @@ exit 0
 
 
 %changelog
+* Sun Oct 14 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-2
+- Do not use 'env' for #! lines.
+
 * Sun Oct 07 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-1
 - Upstream to 2.0.7
 - BZ# 850401 Use systemd_preun when available (f18)
