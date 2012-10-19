@@ -81,6 +81,7 @@ Requires:       perl(Storable)
 Requires:       perl(Text::Balanced)
 Requires:       perl(DateTime)
 Requires:       perl(Time::HiRes)
+Requires:       perl(Taint::Runtime)
 Requires:       sysstat
 
 # SystemD
@@ -566,6 +567,7 @@ exit 0
 %changelog
 * Sun Oct 14 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-2
 - Do not use 'env' for #! lines.
+- Require: perl-Taint-Runtime to prevent warnings
 
 * Sun Oct 07 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-1
 - Upstream to 2.0.7
