@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.7
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -83,6 +83,10 @@ Requires:       perl(DateTime)
 Requires:       perl(Time::HiRes)
 Requires:       perl(Taint::Runtime)
 Requires:       sysstat
+# BZ# 861816 munin-2.x CGI support is broken without manual hacks: no longer
+# default upstream
+#Requires:       mod_fcgid
+#Requires:       spawn-fcgi
 
 # SystemD
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
@@ -102,20 +106,16 @@ Requires:       perl(Net::SSLeay)
 Requires:       perl(Time::HiRes)
 
 # Munin node java monitor requires
-#Requires:       java-jmx
-# java buildrequires on fedora < 17 and rhel
-%if 0%{?rhel} > 4 || 0%{?fedora} < 17
-BuildRequires:  java-1.6.0-devel
-BuildRequires:  mx4j
-BuildRequires:  jpackage-utils
-%endif
-
-# java buildrequires on fedora 17 and higher
-%if 0%{?fedora} > 16
+#Requires:       java-jmx # rhel<5
+# java buildrequires on fedora < 17 and rhel 5,6
+%if 0%{?rhel} > 6 || 0%{?fedora} > 16
 BuildRequires:  java-1.7.0-devel
+%else
+# java buildrequires on fedora 17 and higher
+BuildRequires:  java-1.6.0-devel
+%endif
 BuildRequires:  mx4j
 BuildRequires:  jpackage-utils
-%endif
 
 # CGI requires
 # RHEL6+ Requires:       dejavu-sans-mono-fonts
@@ -322,7 +322,7 @@ install -m 0644 %{SOURCE9} %{buildroot}%{_sysconfdir}/tmpfiles.d/%{name}.conf
 %endif
 
 # Fedora 15 and rhel use sysvinit / upstart
-%if 0%{?rhel} > 4 || 0%{?fedora} < 16
+%if 0%{?rhel} > 4 || 0%{?fedora} == 15
 mkdir -p %{buildroot}/etc/rc.d/init.d
 cat %{SOURCE18} | sed -e 's/2345/\-/' > %{buildroot}/etc/rc.d/init.d/munin-node
 chmod 755 %{buildroot}/etc/rc.d/init.d/munin-node
@@ -401,7 +401,7 @@ exit 0
 
 %post node
 # sysvinit only in f15 and older and epel
-%if 0%{?fedora} < 16 || 0%{?rhel} > 4
+%if ! 0%{?fedora} > 15 || 0%{?rhel} > 6
 /sbin/chkconfig --add munin-node
 %endif
 # Only run configure on a new install, not an upgrade.
@@ -565,6 +565,9 @@ exit 0
 
 
 %changelog
+* Fri Oct 19 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-3
+- BZ# 859956 Minor fedora/rhel build macro fixes
+
 * Sun Oct 14 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-2
 - Do not use 'env' for #! lines.
 - Require: perl-Taint-Runtime to prevent warnings
