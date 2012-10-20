@@ -32,6 +32,7 @@ Source18:       munin-node.rc
 Patch4:         munin-2.0.4-Utils-cluck.patch
 Patch5:         acpi-2.0.5.patch
 Patch6:         munin-2.0.7-http_loadtime.patch
+Patch7:         munin-2.0-defect-1213.patch
 
 BuildArch:      noarch
 
@@ -236,6 +237,8 @@ sed -i -e '
   s,^PERLSITELIB := \(.*\),PERLSITELIB := %{perl_vendorlib},;
   s,^PLUGSTATE  = \(.*\),PLUGSTATE  = $(DBDIR)/plugin-state,;
   s,^PREFIX     = \(.*\),PREFIX     = $(DESTDIR)/usr,;
+  s,^PYTHON     := \(.*\),PYTHON     := /usr/bin/python,;
+  s,^RUBY       := \(.*\),RUBY       := /usr/bin/ruby,;
   s,^USER       := \(.*\),USER       := nobody,;
   ' Makefile.config
 
@@ -248,6 +251,7 @@ install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
 %patch4 -p0
 %patch5 -p0
 %patch6 -p1
+%patch7 -p1
 install -c %{SOURCE13} ./resources/
 
 
@@ -567,6 +571,7 @@ exit 0
 %changelog
 * Fri Oct 19 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-3
 - BZ# 859956 Minor fedora/rhel build macro fixes
+- BZ# 861148 Upstream 1213, Incorrect child count in worker threads for GraphOld.pm and HTMLOld.pm
 
 * Sun Oct 14 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-2
 - Do not use 'env' for #! lines.
