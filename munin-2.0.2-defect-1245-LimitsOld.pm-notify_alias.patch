@@ -1,0 +1,29 @@
+diff -w -ruN munin-2.0.7.orig/master/lib/Munin/Master/LimitsOld.pm munin-2.0.7/master/lib/Munin/Master/LimitsOld.pm
+--- munin-2.0.7.orig/master/lib/Munin/Master/LimitsOld.pm	2012-10-02 17:46:50.000000000 -0500
++++ munin-2.0.7/master/lib/Munin/Master/LimitsOld.pm	2012-10-31 21:51:28.396762456 -0500
+@@ -279,7 +279,8 @@
+ sub process_service {
+     my $hash       = shift || return;
+     my $hobj       = get_host_node($hash);
+-    my $host       = get_notify_name($hobj);
++    my $hostalias  = get_notify_name($hobj);
++    my $host       = munin_get_node_name($hobj);
+     my $service    = munin_get_node_name($hash);
+     my $hparentobj = munin_get_parent($hobj);
+     my $parent     = munin_get_node_name($hobj);
+@@ -298,12 +299,13 @@
+     $hash->{'fields'} = join(' ', map {munin_get_node_name($_)} @$children);
+     $hash->{'plugin'} = $service;
+     $hash->{'graph_title'} = get_full_service_name($hash);
+-    $hash->{'host'}  = $host;
++    $hash->{'host'}  = $hostalias;
++    $hash->{'muninhost'} = $host;
+     $hash->{'group'} = get_full_group_path($hparentobj);
+     $hash->{'worst'} = "ok";
+     $hash->{'worstid'} = 0 unless defined $hash->{'worstid'};
+ 
+-    my $state_file = sprintf ('%s/state-%s-%s.storable', $config->{dbdir}, $hash->{group}, $hash->{host}); 
++    my $state_file = sprintf ('%s/state-%s-%s.storable', $config->{dbdir}, $hash->{group}, $hash->{muninhost}); 
+     DEBUG "[DEBUG] state_file: $state_file";
+     my $state = munin_read_storable($state_file) || {};
+ 

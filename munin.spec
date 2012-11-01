@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.7
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -33,6 +33,7 @@ Patch4:         munin-2.0.4-Utils-cluck.patch
 Patch5:         acpi-2.0.5.patch
 Patch6:         munin-2.0.7-http_loadtime.patch
 Patch7:         munin-2.0-defect-1213.patch
+Patch8:         munin-2.0.2-defect-1245-LimitsOld.pm-notify_alias.patch
 
 BuildArch:      noarch
 
@@ -53,7 +54,11 @@ BuildRequires:  perl(Time::HiRes)
 BuildRequires:  perl(Net::SSLeay)
 BuildRequires:  perl(HTML::Template)
 # RHEL6+ BuildRequires:  perl(Log::Log4perl) >= 1.18
+%if 0%{?rhel} > 5 || 0%{?fedora} > 11
+BuildRequires:  perl(Log::Log4perl) >= 1.18
+%else
 BuildRequires:  perl(Log::Log4perl)
+%endif
 Requires(pre):  shadow-utils
 Requires:       perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 
@@ -67,12 +72,6 @@ Requires:       perl(File::Copy::Recursive)
 Requires:       perl(Getopt::Long)
 Requires:       perl(HTML::Template)
 Requires:       perl(IO::Socket::INET6)
-# RHEL6+ BuildRequires:  perl(Log::Log4perl) >= 1.18
-%if 0%{?rhel} > 5 || 0%{?fedora} > 11
-BuildRequires:  perl(Log::Log4perl) >= 1.18
-%else
-BuildRequires:  perl(Log::Log4perl)
-%endif
 Requires:       perl(Net::Server)
 Requires:       perl(Net::SNMP)
 Requires:       perl(Net::SSLeay)
@@ -220,7 +219,7 @@ java-plugins for munin-node.
 #rm -rf ./dists/redhat
 
 sed -i -e '
-  s,^CGIDIR     = \(.*\),CGIDIR     = $(HTMLDIR)/cgi,;
+  s,^CGIDIR     = \(.*\),CGIDIR     = $(DESTDIR)/var/www/cgi-bin,;
   s,^CHGRP      := \(.*\),CHGRP      := echo Not done: chgrp,;
   s,^CHMOD      := \(.*\),CHMOD      := echo Not done: chmod,;
   s,^CHOWN      := \(.*\),CHOWN      := echo Not done: chown,;
@@ -252,6 +251,7 @@ install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
 %patch5 -p0
 %patch6 -p1
 %patch7 -p1
+%patch8 -p1
 install -c %{SOURCE13} ./resources/
 
 
@@ -476,7 +476,7 @@ exit 0
 %dir %attr(0775,root,munin) /var/lib/munin/plugin-state
 %attr(0755,munin,munin) %dir /var/www/html/munin
 %attr(0755,munin,munin) %dir /var/www/html/munin/static
-%attr(0755,root,root) %dir /var/www/html/munin/cgi
+%attr(0755,root,root) %dir /var/www/cgi-bin
 %config(noreplace) %attr(0644,root,root) %{_sysconfdir}/cron.d/munin
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/munin.conf
 %config(noreplace) %{_sysconfdir}/logrotate.d/munin
@@ -495,8 +495,8 @@ exit 0
 %{_datadir}/munin/munin-storable2datafile
 %{_datadir}/munin/munin-update
 %{perl_vendorlib}/Munin/Master/*.pm
-%attr(0755,root,munin) /var/www/html/munin/cgi/munin-cgi-graph
-%attr(0755,root,munin) /var/www/html/munin/cgi/munin-cgi-html
+%attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-graph
+%attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-html
 %attr(0644,munin,munin) /var/www/html/munin/static/*
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 /lib/systemd/system/munin-fcgi-html.service
@@ -569,6 +569,10 @@ exit 0
 
 
 %changelog
+* Fri Oct 26 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-4
+- move CGI files to correct cgi-bin/
+- BZ# 871967 Upstream 1235, Munin: unknown states on services for LimitsOld.pm
+
 * Fri Oct 19 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-3
 - BZ# 859956 Minor fedora/rhel build macro fixes
 - BZ# 861148 Upstream 1213, Incorrect child count in worker threads for GraphOld.pm and HTMLOld.pm
