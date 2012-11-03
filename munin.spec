@@ -335,6 +335,10 @@ install -m 0755 %{SOURCE13} %{buildroot}/etc/rc.d/init.d/munin-asyncd
 
 # Fix default config file
 #sed -i 's,/etc/munin/munin-conf.d,/etc/munin/conf.d,' %{buildroot}/etc/munin/munin.conf
+sed -i '
+  s,#html_strategy.*,html_strategy cron,;
+  s,#graph_strategy.*,graph_strategy cron,;
+  ' %{buildroot}/etc/munin/munin.conf
 mkdir -p %{buildroot}/etc/munin/conf.d
 mkdir -p %{buildroot}/etc/munin/plugin-conf.d
 mkdir -p %{buildroot}/etc/munin/node.d
@@ -417,7 +421,9 @@ fi
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 # Newer installs use systemd
   %if 0%{?systemd_preun:1}
-    %systemd_preun rarpd.service
+    for svc in node asyncd fcgi-html fcgi-graph; do
+      %systemd_preun munin-${svc}.service
+    done
   %else
     if [ "$1" = 0 ]; then
       for svc in node asyncd fcgi-html fcgi-graph; do
