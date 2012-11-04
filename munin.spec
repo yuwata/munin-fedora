@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.7
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -347,8 +347,8 @@ install -m 0755 %{SOURCE13} %{buildroot}/etc/rc.d/init.d/munin-asyncd
 %endif
 
 # Fix default config file
-#sed -i 's,/etc/munin/munin-conf.d,/etc/munin/conf.d,' %{buildroot}/etc/munin/munin.conf
 sed -i '
+  s,/etc/munin/munin-conf.d,/etc/munin/conf.d,;
   s,#html_strategy.*,html_strategy cron,;
   s,#graph_strategy.*,graph_strategy cron,;
   ' %{buildroot}/etc/munin/munin.conf
@@ -620,6 +620,9 @@ exit 0
 
 
 %changelog
+* Sun Nov 04 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-5
+- BZ# 872891 Re-add config file option to use conf.d/ instead of munin-conf.d/
+
 * Fri Oct 26 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-4
 - move CGI files to correct cgi-bin/
 - BZ# 871967 Upstream 1235, Munin: unknown states on services for LimitsOld.pm
