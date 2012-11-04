@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.7
-Release:        5%{?dist}
+Release:        6%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -558,7 +558,7 @@ exit 0
 %dir %{_datadir}/munin
 %dir %attr(-,munin,munin) /var/lib/munin
 %dir %attr(0775,nobody,munin) /var/lib/munin-node/plugin-state
-%dir %attr(-,munin,munin) /var/log/munin
+%dir %attr(0775,apache,munin) /var/log/munin
 %config(noreplace) %{_sysconfdir}/logrotate.d/munin-node
 %config(noreplace) %{_sysconfdir}/munin/munin-node.conf
 %config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/df
@@ -620,6 +620,9 @@ exit 0
 
 
 %changelog
+* Sun Nov 04 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-6
+- minor CGI permission fixes
+
 * Sun Nov 04 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-5
 - BZ# 872891 Re-add config file option to use conf.d/ instead of munin-conf.d/
 
