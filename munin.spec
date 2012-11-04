@@ -83,10 +83,6 @@ Requires:       perl(DateTime)
 Requires:       perl(Time::HiRes)
 Requires:       perl(Taint::Runtime)
 Requires:       sysstat
-# BZ# 861816 munin-2.x CGI support is broken without manual hacks: no longer
-# default upstream
-#Requires:       mod_fcgid
-#Requires:       spawn-fcgi
 
 # SystemD
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
@@ -138,7 +134,7 @@ RRDtool.
 %package node
 Group:          System Environment/Daemons
 Summary:        Network-wide graphing framework (node)
-BuildArchitectures: noarch
+BuildArch:      noarch
 Requires:       %{name}-common = %{version}
 Requires:       perl-Net-Server
 Requires:       perl-Net-CIDR
@@ -148,7 +144,6 @@ Requires(pre):  shadow-utils
 Requires(post): /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
-Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 
 %description node
 Munin is a highly flexible and powerful solution used to create graphs
@@ -172,10 +167,10 @@ Munin is written in Perl, and relies heavily on Tobi Oetiker's excellent
 RRDtool.
 
 %package async
-Group: System Environment/Daemons
-Summary: Network-wide graphing framework (asynchronous client tools)
-BuildArch: noarch
-Requires: %{name}-node = %{version}
+Group:          System Environment/Daemons
+Summary:        Network-wide graphing framework (asynchronous client tools)
+BuildArch:      noarch
+Requires:       %{name}-node = %{version}
 
 %description async
 Munin is a highly flexible and powerful solution used to create graphs of
@@ -189,8 +184,8 @@ client / spooling system
 %package common
 Group:          System Environment/Daemons
 Summary:        Network-wide graphing framework (common files)
-BuildArchitectures: noarch
-Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+BuildArch:      noarch
+Requires:       perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 
 %description common
 Munin is a highly flexible and powerful solution used to create graphs
@@ -205,11 +200,29 @@ and node (munin-node) packages.
 Group:          System Environment/Daemons
 Summary:        java-plugins for munin
 Requires:       %{name}-node = %{version}
-BuildArchitectures: noarch
+BuildArch:      noarch
 Requires:       jpackage-utils
 
 %description java-plugins
 java-plugins for munin-node.
+
+
+# BZ# 861816 munin-2.x CGI support is broken without manual hacks
+%package cgi
+Group:          System Environment/Daemons
+Summary:        Network-wide graphing framework (common files)
+BuildArch:      noarch
+Requires:       %{name}-common = %{version}
+Requires:       mod_fcgid
+Requires:       spawn-fcgi
+
+%description cgi
+Munin package uses cron by default.  This package contains the CGI files that
+can generate HTML and graphs dynamically. This enables munin to scale better
+for a master with many nodes.
+
+See documentation for setup instructions:
+http://munin-monitoring.org/wiki/CgiHowto2
 
 
 %prep
@@ -421,7 +434,32 @@ fi
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 # Newer installs use systemd
   %if 0%{?systemd_preun:1}
-    for svc in node asyncd fcgi-html fcgi-graph; do
+    for svc in node asyncd ; do
+      %systemd_preun munin-${svc}.service
+    done
+  %else
+    if [ "$1" = 0 ]; then
+      for svc in node asyncd ; do
+        /bin/systemctl --no-reload disable munin-${svc}.service >/dev/null 2>&1 || :
+        /bin/systemctl stop munin-${svc}.service >/dev/null 2>&1 || :
+      done
+    fi
+  %endif
+%else
+# Older installs use sysvinit / upstart
+if [ "$1" = 0 ]; then
+  for svc in node asyncd fcgi-html fcgi-graph; do
+    service munin-${svc} stop &>/dev/null || :
+    /sbin/chkconfig --del munin-${svc}
+  done
+fi
+%endif
+
+%preun cgi
+%if 0%{?rhel} > 6 || 0%{?fedora} > 15
+# Newer installs use systemd
+  %if 0%{?systemd_preun:1}
+    for svc in fcgi-html fcgi-graph; do
       %systemd_preun munin-${svc}.service
     done
   %else
@@ -435,8 +473,10 @@ fi
 %else
 # Older installs use sysvinit / upstart
 if [ "$1" = 0 ]; then
-  %{_initrddir}/munin-node stop &>/dev/null || :
-  /sbin/chkconfig --del munin-node
+  for svc in fcgi-html fcgi-graph; do
+    service munin-${svc} stop &>/dev/null || :
+    /sbin/chkconfig --del munin-${svc}
+  done
 fi
 %endif
 
@@ -452,6 +492,7 @@ mv -f %{_sysconfdir}/munin/plugins %{_sysconfdir}/munin/plugins.bak || :
 
 %triggerpostun node -- munin-node < 1.4.7-2
 mv -f %{_sysconfdir}/munin/plugins.bak %{_sysconfdir}/munin/plugins || :
+
 
 #
 # main package scripts
@@ -482,7 +523,7 @@ exit 0
 %dir %attr(0775,root,munin) /var/lib/munin/plugin-state
 %attr(0755,munin,munin) %dir /var/www/html/munin
 %attr(0755,munin,munin) %dir /var/www/html/munin/static
-%attr(0755,root,root) %dir /var/www/cgi-bin
+%attr(0644,munin,munin) /var/www/html/munin/static/*
 %config(noreplace) %attr(0644,root,root) %{_sysconfdir}/cron.d/munin
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/munin.conf
 %config(noreplace) %{_sysconfdir}/logrotate.d/munin
@@ -501,13 +542,6 @@ exit 0
 %{_datadir}/munin/munin-storable2datafile
 %{_datadir}/munin/munin-update
 %{perl_vendorlib}/Munin/Master/*.pm
-%attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-graph
-%attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-html
-%attr(0644,munin,munin) /var/www/html/munin/static/*
-%if 0%{?rhel} > 6 || 0%{?fedora} > 15
-/lib/systemd/system/munin-fcgi-html.service
-/lib/systemd/system/munin-fcgi-graph.service
-%endif
 
 
 %files node
@@ -574,10 +608,22 @@ exit 0
 %{_datadir}/munin/plugins/jmx_
 
 
+%files cgi
+%defattr(-,root,root)
+%attr(0755,root,root) %dir /var/www/cgi-bin
+%attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-graph
+%attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-html
+%if 0%{?rhel} > 6 || 0%{?fedora} > 15
+/lib/systemd/system/munin-fcgi-html.service
+/lib/systemd/system/munin-fcgi-graph.service
+%endif
+
+
 %changelog
 * Fri Oct 26 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-4
 - move CGI files to correct cgi-bin/
 - BZ# 871967 Upstream 1235, Munin: unknown states on services for LimitsOld.pm
+- BZ# 861816 Create CGI sub-package for dynamic graphing
 
 * Fri Oct 19 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-3
 - BZ# 859956 Minor fedora/rhel build macro fixes
