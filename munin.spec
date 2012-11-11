@@ -1,6 +1,6 @@
 Name:           munin
-Version:        2.0.7
-Release:        6%{?dist}
+Version:        2.0.8
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -31,9 +31,9 @@ Source18:       munin-node.rc
 #Patch2:         munin-1.4.2-fontfix.patch
 Patch4:         munin-2.0.4-Utils-cluck.patch
 Patch5:         acpi-2.0.5.patch
-Patch6:         munin-2.0.7-http_loadtime.patch
+#Patch6:         munin-2.0.7-http_loadtime.patch
 Patch7:         munin-2.0-defect-1213.patch
-Patch8:         munin-2.0.2-defect-1245-LimitsOld.pm-notify_alias.patch
+#Patch8:         munin-2.0.2-defect-1245-LimitsOld.pm-notify_alias.patch
 
 BuildArch:      noarch
 
@@ -254,17 +254,13 @@ sed -i -e '
   s,^USER       := \(.*\),USER       := nobody,;
   ' Makefile.config
 
-#%%patch1 -p1
 %if 0%{?rhel} < 6 && 0%{?fedora} < 11
-#%%patch2 -p0
 install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
 %endif
 
 %patch4 -p0
 %patch5 -p0
-%patch6 -p1
 %patch7 -p1
-%patch8 -p1
 install -c %{SOURCE13} ./resources/
 
 
@@ -620,6 +616,9 @@ exit 0
 
 
 %changelog
+* Sun Nov 11 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.8-1
+- Upstream to 2.0.8
+
 * Sun Nov 04 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-6
 - minor CGI permission fixes
 
