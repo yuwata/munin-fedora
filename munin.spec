@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.8
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -34,6 +34,7 @@ Patch5:         acpi-2.0.5.patch
 #Patch6:         munin-2.0.7-http_loadtime.patch
 Patch7:         munin-2.0-defect-1213.patch
 #Patch8:         munin-2.0.2-defect-1245-LimitsOld.pm-notify_alias.patch
+Patch9:         munin-2.0.8-cgitmp.patch
 
 BuildArch:      noarch
 
@@ -233,6 +234,7 @@ http://munin-monitoring.org/wiki/CgiHowto2
 
 sed -i -e '
   s,^CGIDIR     = \(.*\),CGIDIR     = $(DESTDIR)/var/www/cgi-bin,;
+  s,^CGITMPDIR  = \(.*\),CGITMPDIR  = /var/tmp,;
   s,^CHGRP      := \(.*\),CHGRP      := echo Not done: chgrp,;
   s,^CHMOD      := \(.*\),CHMOD      := echo Not done: chmod,;
   s,^CHOWN      := \(.*\),CHOWN      := echo Not done: chown,;
@@ -261,6 +263,7 @@ install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
 %patch4 -p0
 %patch5 -p0
 %patch7 -p1
+%patch9 -p1
 install -c %{SOURCE13} ./resources/
 
 
@@ -616,6 +619,9 @@ exit 0
 
 
 %changelog
+* Tue Nov 13 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.8-2
+- Added cgitmp patch c/o Diego Elio Pettenò <flameeyes@flameeyes.eu>
+
 * Sun Nov 11 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.8-1
 - Upstream to 2.0.8
 
