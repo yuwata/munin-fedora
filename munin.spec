@@ -26,6 +26,7 @@ Source15:       munin-fcgi-html.service
 Source16:       munin-fcgi-graph.service
 Source17:       munin.cron.d
 Source18:       munin-node.rc
+Source19:       httpd_munin-cgi.conf
 
 #Patch1:         munin-1.4.6-restorecon.patch
 #Patch2:         munin-1.4.2-fontfix.patch
@@ -225,6 +226,14 @@ for a master with many nodes.
 See documentation for setup instructions:
 http://munin-monitoring.org/wiki/CgiHowto2
 
+QUICK-HOWTO:
+sed -i 's/\(.*\)_strategy.*/\1_strategy cgi/' /etc/munin/munin.conf
+cp --backup /etc/sysconfig/spawn-fcgi-munin /etc/sysconfig/spawn-fcgi
+for svc in httpd munin-node spawn-fcgi; do
+  chkconfig $svc on
+  service $svc start
+done
+
 
 %prep
 %setup -q -n munin-%{version}
@@ -393,6 +402,20 @@ mkdir -p %{buildroot}/var/lib/munin-node/plugin-state
 
 # Create for BZ 786030
 touch %{buildroot}/var/lib/munin/plugin-state/yum.state
+
+# Fix config file so that it no longer references the build host
+sed -i 's/^\[.*/\[localhost\]/' %{buildroot}/etc/munin/munin.conf
+
+# Create sample fcgi config files
+mkdir -p %{buildroot}/etc/sysconfig %{buildroot}/etc/httpd/conf.d
+cp %{SOURCE19} %{buildroot}/etc/httpd/conf.d/munin-cgi.conf
+cat > %{buildroot}/etc/sysconfig/spawn-fcgi-munin <<EOT
+# SAMPLE: Rename this file to /etc/sysconfig/spawn-fcgi and edit to fit
+# (Without something like this, munin-cgi will not work properly via init script)
+SOCKET=/var/run/munin/fcgi-graph.sock
+OPTIONS="-U apache -u apache -g apache -s $SOCKET -S -M 0600 -C 32 -F 1 -P /var/run/spawn-fcgi.pid -- /var/www/cgi-bin/munin-cgi-graph"
+
+EOT
 
 
 %clean
@@ -612,6 +635,8 @@ exit 0
 %attr(0755,root,root) %dir /var/www/cgi-bin
 %attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-graph
 %attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-html
+%config(noreplace) %{_sysconfdir}/sysconfig/spawn-fcgi-munin
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/munin-cgi.conf
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 /lib/systemd/system/munin-fcgi-html.service
 /lib/systemd/system/munin-fcgi-graph.service
@@ -621,6 +646,7 @@ exit 0
 %changelog
 * Tue Nov 13 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.8-2
 - Added cgitmp patch c/o Diego Elio Pettenò <flameeyes@flameeyes.eu>
+- BZ# 861816 Add sample files for switching to FCGI
 
 * Sun Nov 11 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.8-1
 - Upstream to 2.0.8
@@ -632,7 +658,7 @@ exit 0
 - BZ# 872891 Re-add config file option to use conf.d/ instead of munin-conf.d/
 
 * Fri Oct 26 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.7-4
-- move CGI files to correct cgi-bin/
+- more CGI files to correct cgi-bin/
 - BZ# 871967 Upstream 1235, Munin: unknown states on services for LimitsOld.pm
 - BZ# 861816 Create CGI sub-package for dynamic graphing
 
