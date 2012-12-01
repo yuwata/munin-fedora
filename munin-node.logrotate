@@ -6,4 +6,5 @@
 	copytruncate
 	notifempty
 	create 644 munin munin
+	su munin munin
 }

@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.8
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -632,7 +632,6 @@ exit 0
 
 %files cgi
 %defattr(-,root,root)
-%attr(0755,root,root) %dir /var/www/cgi-bin
 %attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-graph
 %attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-html
 %config(noreplace) %{_sysconfdir}/sysconfig/spawn-fcgi-munin
@@ -644,6 +643,9 @@ exit 0
 
 
 %changelog
+* Fri Nov 30 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.8-3
+- BZ# 880505 munin logrotate permissions fix.
+
 * Tue Nov 13 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.8-2
 - Added cgitmp patch c/o Diego Elio Pettenò <flameeyes@flameeyes.eu>
 - BZ# 861816 Add sample files for switching to FCGI
