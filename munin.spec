@@ -374,6 +374,11 @@ install -m 0644 %{SOURCE2} %{buildroot}/etc/munin/plugin-conf.d/hddtemp_smartctl
 # install logrotate scripts
 install -m 0644 %{SOURCE3} %{buildroot}/etc/logrotate.d/munin-node
 install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
+%if ! 0%{?fedora} > 15 || 0%{?rhel} > 6
+# Fedora >= 16 requires 'su' directive.
+sed -i 's/su munin/#su munin/' %{buildroot}/etc/logrotate.d/munin-node
+sed -i 's/su munin/#su munin/' %{buildroot}/etc/logrotate.d/munin
+%endif
 
 # install config for postfix under fedora
 install -m 0644 %{SOURCE6} %{buildroot}/etc/munin/plugin-conf.d/postfix
