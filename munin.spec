@@ -1,6 +1,6 @@
 Name:           munin
-Version:        2.0.8
-Release:        3%{?dist}
+Version:        2.0.9
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -376,8 +376,8 @@ install -m 0644 %{SOURCE3} %{buildroot}/etc/logrotate.d/munin-node
 install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
 %if ! 0%{?fedora} > 15 || 0%{?rhel} > 6
 # Fedora >= 16 requires 'su' directive.
-sed -i 's/su munin/#su munin/' %{buildroot}/etc/logrotate.d/munin-node
-sed -i 's/su munin/#su munin/' %{buildroot}/etc/logrotate.d/munin
+sed -i 's/su /#su /' %{buildroot}/etc/logrotate.d/munin-node
+sed -i 's/su /#su /' %{buildroot}/etc/logrotate.d/munin
 %endif
 
 # install config for postfix under fedora
@@ -648,6 +648,9 @@ exit 0
 
 
 %changelog
+* Thu Dec 06 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.9-1
+- Update to 2.0.9
+
 * Fri Nov 30 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.8-3
 - BZ# 880505 munin logrotate permissions fix.
 
