@@ -232,8 +232,7 @@ http://munin.readthedocs.org/en/latest/example/webserver/apache-virtualhost.html
 QUICK-HOWTO:
 sed -i 's/\(.*\)_strategy.*/\1_strategy cgi/' /etc/munin/munin.conf
 htpasswd -bc /etc/munin/munin-htpasswd MUNIN_WEB_USER PASSWORD
-cp --backup /etc/sysconfig/spawn-fcgi-munin /etc/sysconfig/spawn-fcgi
-for svc in httpd munin-node spawn-fcgi; do
+for svc in httpd munin-node ; do
   service $svc stop
   chkconfig $svc on
   service $svc start
@@ -422,13 +421,13 @@ sed -i 's/^\[.*/\[localhost\]/' %{buildroot}/etc/munin/munin.conf
 # Create sample fcgi config files
 mkdir -p %{buildroot}/etc/sysconfig %{buildroot}/etc/httpd/conf.d
 cp %{SOURCE19} %{buildroot}/etc/httpd/conf.d/munin-cgi.conf
-cat > %{buildroot}/etc/sysconfig/spawn-fcgi-munin <<EOT
+cat > %{buildroot}/etc/sysconfig/spawn-fcgi-munin <<EOT.spawn
 # SAMPLE: Rename this file to /etc/sysconfig/spawn-fcgi and edit to fit
-# (Without something like this, munin-cgi will not work properly via init script)
+# (Without this, nginx + munin-cgi will not work properly via init script)
 SOCKET=/var/run/mod_fcgid/fcgi-graph.sock
 OPTIONS="-U apache -u apache -g apache -s $SOCKET -S -M 0600 -C 32 -F 1 -P /var/run/spawn-fcgi.pid -- /var/www/cgi-bin/munin-cgi-graph"
 
-EOT
+EOT.spawn
 
 # Create sample htpasswd file
 touch %{buildroot}/etc/munin/munin-htpasswd
