@@ -5,6 +5,6 @@
 	compress
 	copytruncate
 	notifempty
-	create 644 munin munin
-	su apache munin
+	create 644 root root
+	su root root
 }

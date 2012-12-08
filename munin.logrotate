@@ -5,7 +5,7 @@
 	compress
 	notifempty
 	create 640 munin munin
-	su apache munin
+	su munin munin
 }
 
 /var/log/munin/munin-graph.log {
@@ -15,7 +15,7 @@
 	compress
 	notifempty
 	create 640 munin munin
-	su apache munin
+	su munin munin
 }
 
 /var/log/munin/munin-html.log {
@@ -25,7 +25,7 @@
 	compress
 	notifempty
 	create 640 munin munin
-	su apache munin
+	su munin munin
 }
 
 /var/log/munin/munin-limits.log {
@@ -35,5 +35,5 @@
 	compress
 	notifempty
 	create 640 munin munin
-	su apache munin
+	su munin munin
 }

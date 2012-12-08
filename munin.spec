@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.9
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -55,6 +55,7 @@ BuildRequires:  perl(Test::Pod::Coverage)
 BuildRequires:  perl(Time::HiRes)
 BuildRequires:  perl(Net::SSLeay)
 BuildRequires:  perl(HTML::Template)
+BuildRequires:  perl(LWP::UserAgent)
 # RHEL6+ BuildRequires:  perl(Log::Log4perl) >= 1.18
 %if 0%{?rhel} > 5 || 0%{?fedora} > 11
 BuildRequires:  perl(Log::Log4perl) >= 1.18
@@ -142,6 +143,7 @@ Requires:       perl-Net-Server
 Requires:       perl-Net-CIDR
 Requires:       procps >= 2.0.7
 Requires:       sysstat, /usr/bin/which, hdparm
+Requires:       perl(LWP::UserAgent)
 Requires(pre):  shadow-utils
 Requires(post): /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
@@ -225,11 +227,14 @@ for a master with many nodes.
 
 See documentation for setup instructions:
 http://munin-monitoring.org/wiki/CgiHowto2
+http://munin.readthedocs.org/en/latest/example/webserver/apache-virtualhost.html
 
 QUICK-HOWTO:
 sed -i 's/\(.*\)_strategy.*/\1_strategy cgi/' /etc/munin/munin.conf
+htpasswd -bc /etc/munin/munin-htpasswd MUNIN_WEB_USER PASSWORD
 cp --backup /etc/sysconfig/spawn-fcgi-munin /etc/sysconfig/spawn-fcgi
 for svc in httpd munin-node spawn-fcgi; do
+  service $svc stop
   chkconfig $svc on
   service $svc start
 done
@@ -408,6 +413,9 @@ mkdir -p %{buildroot}/var/lib/munin-node/plugin-state
 # Create for BZ 786030
 touch %{buildroot}/var/lib/munin/plugin-state/yum.state
 
+# Create CGI tmpdir space
+mkdir -p %{buildroot}/var/lib/munin/cgi-tmp/munin-cgi-graph
+
 # Fix config file so that it no longer references the build host
 sed -i 's/^\[.*/\[localhost\]/' %{buildroot}/etc/munin/munin.conf
 
@@ -417,11 +425,21 @@ cp %{SOURCE19} %{buildroot}/etc/httpd/conf.d/munin-cgi.conf
 cat > %{buildroot}/etc/sysconfig/spawn-fcgi-munin <<EOT
 # SAMPLE: Rename this file to /etc/sysconfig/spawn-fcgi and edit to fit
 # (Without something like this, munin-cgi will not work properly via init script)
-SOCKET=/var/run/munin/fcgi-graph.sock
+SOCKET=/var/run/mod_fcgid/fcgi-graph.sock
 OPTIONS="-U apache -u apache -g apache -s $SOCKET -S -M 0600 -C 32 -F 1 -P /var/run/spawn-fcgi.pid -- /var/www/cgi-bin/munin-cgi-graph"
 
 EOT
 
+# Create sample htpasswd file
+touch %{buildroot}/etc/munin/munin-htpasswd
+
+# Fix munin-check to report more accurately
+sed -i -e '
+  s,nobody,munin,;
+  s,owner_ok /var/log/munin .*,owner_ok /var/log/munin apache,;
+  s,owner_ok /var/lib/munin .*,owner_ok /var/lib/munin munin,;
+  s,owner_ok /var/lib/munin/plugin-state .*,owner_ok /var/lib/munin/plugin-state root,;
+  ' %{buildroot}/usr/bin/munin-check
 
 %clean
 rm -rf %{buildroot}
@@ -641,13 +659,21 @@ exit 0
 %attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-html
 %config(noreplace) %{_sysconfdir}/sysconfig/spawn-fcgi-munin
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/munin-cgi.conf
+%config(noreplace) %{_sysconfdir}/munin/munin-htpasswd
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 /lib/systemd/system/munin-fcgi-html.service
 /lib/systemd/system/munin-fcgi-graph.service
 %endif
+%attr(0755,root,root) %dir /var/lib/munin/cgi-tmp
+%attr(0755,apache,apache) %dir /var/lib/munin/cgi-tmp/munin-cgi-graph
 
 
 %changelog
+* Thu Dec 06 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.9-2
+- Require: LWP::UserAgent for plugins
+- BZ# 861816 Add simplified files for switching to FCGI
+- BZ# 880505 Change logrotate files to include su directive
+
 * Thu Dec 06 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.9-1
 - Update to 2.0.9
 
