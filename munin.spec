@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.9
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -36,6 +36,7 @@ Patch5:         acpi-2.0.5.patch
 Patch7:         munin-2.0-defect-1213.patch
 #Patch8:         munin-2.0.2-defect-1245-LimitsOld.pm-notify_alias.patch
 Patch9:         munin-2.0.8-cgitmp.patch
+Patch10:        munin-2.0.9_HTMLConfig.pm.patch
 
 BuildArch:      noarch
 
@@ -182,7 +183,10 @@ virtually everything imaginable throughout your network, while still
 maintaining a rattling ease of installation and configuration.
 
 This package contains the tools necessary for setting up an asynchronous
-client / spooling system
+client / spooling system.
+
+See documentation for setup instructions:
+https://munin.readthedocs.org/en/latest/node/async.html
 
 
 %package common
@@ -277,6 +281,7 @@ install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
 %patch5 -p0
 %patch7 -p1
 %patch9 -p1
+%patch10 -p1
 install -c %{SOURCE13} ./resources/
 
 
@@ -417,6 +422,10 @@ mkdir -p %{buildroot}/var/lib/munin/cgi-tmp/munin-cgi-graph
 
 # Fix config file so that it no longer references the build host
 sed -i 's/^\[.*/\[localhost\]/' %{buildroot}/etc/munin/munin.conf
+
+# BZ# 885422 Move munin-node logs to /var/log/munin-node/
+mkdir -p %{buildroot}/var/log/munin-node
+sed -i 's,^log_file .*,log_file /var/log/munin-node/munin-node.log,' %{buildroot}/etc/munin/munin-node.conf
 
 # Create sample fcgi config files
 mkdir -p %{buildroot}/etc/sysconfig %{buildroot}/etc/httpd/conf.d
@@ -564,6 +573,7 @@ exit 0
 %dir %{_sysconfdir}/munin/templates/partial
 %dir %{_datadir}/munin
 %dir %{_datadir}/munin/plugins
+%dir %attr(0775,apache,munin) /var/log/munin
 %dir %attr(0775,root,munin) /var/lib/munin/plugin-state
 %attr(0755,munin,munin) %dir /var/www/html/munin
 %attr(0755,munin,munin) %dir /var/www/html/munin/static
@@ -602,7 +612,7 @@ exit 0
 %dir %{_datadir}/munin
 %dir %attr(-,munin,munin) /var/lib/munin
 %dir %attr(0775,nobody,munin) /var/lib/munin-node/plugin-state
-%dir %attr(0775,apache,munin) /var/log/munin
+%dir %attr(0755,root,root) /var/log/munin-node
 %config(noreplace) %{_sysconfdir}/logrotate.d/munin-node
 %config(noreplace) %{_sysconfdir}/munin/munin-node.conf
 %config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/df
@@ -668,6 +678,11 @@ exit 0
 
 
 %changelog
+* Sun Dec 09 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.9-3
+- Add documentation links for async
+- BZ# 885422 Move munin-node logs to /var/log/munin-node/
+- BZ# 877166 Convert '&' to '&amp;' in HTMLConfig.pm for validation
+
 * Thu Dec 06 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.9-2
 - Require: LWP::UserAgent for plugins
 - BZ# 861816 Add simplified files for switching to FCGI
