@@ -44,7 +44,7 @@ diff -ru munin-2.0.8.orig/Makefile.config munin-2.0.8/Makefile.config
 +++ munin-2.0.8/Makefile.config	2012-11-13 09:04:32.574210750 -0600
 @@ -44,6 +44,9 @@
  # Where to put internal data for master (RRD, internal files, ...)
- DBDIR      = $(DESTDIR)/var/lib/munin
+ DBDIR      = $(DESTDIR)/var/opt/munin
  
 +# Where to put CGI cached files (for master only)
 +CGITMPDIR  = $(DBDIR)/cgi-tmp

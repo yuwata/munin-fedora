@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.9
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -27,6 +27,7 @@ Source16:       munin-fcgi-graph.service
 Source17:       munin.cron.d
 Source18:       munin-node.rc
 Source19:       httpd_munin-cgi.conf
+Source20:       Makefile.config-dist
 
 #Patch1:         munin-1.4.6-restorecon.patch
 #Patch2:         munin-1.4.2-fontfix.patch
@@ -246,33 +247,6 @@ done
 %prep
 %setup -q -n munin-%{version}
 
-# Upstream already removed this dir
-#rm -rf ./dists/redhat
-
-sed -i -e '
-  s,^CGIDIR     = \(.*\),CGIDIR     = $(DESTDIR)/var/www/cgi-bin,;
-  s,^CGITMPDIR  = \(.*\),CGITMPDIR  = /var/tmp,;
-  s,^CHGRP      := \(.*\),CHGRP      := echo Not done: chgrp,;
-  s,^CHMOD      := \(.*\),CHMOD      := echo Not done: chmod,;
-  s,^CHOWN      := \(.*\),CHOWN      := echo Not done: chown,;
-  s,^CONFDIR    = \(.*\),CONFDIR    = $(DESTDIR)/etc/munin,;
-  s,^DBDIR      = \(.*\),DBDIR      = $(DESTDIR)/var/lib/munin,;
-  s,^DBDIRNODE  = \(.*\),DBDIRNODE  = $(DESTDIR)/var/opt/munin-node,;
-  s,^DOCDIR     = \(.*\),DOCDIR     = $(DESTDIR)%{_datadir}/doc/munin-$(VERSION),;
-  s,^GROUP      := \(.*\),GROUP      := nobody,;
-  s,^HOSTNAME   = \(.*\),HOSTNAME    = localhost.localdomain,;
-  s,^HTMLDIR    = \(.*\),HTMLDIR    = $(DESTDIR)/var/www/html/munin,;
-  s,^LIBDIR     = \(.*\),LIBDIR     = $(DESTDIR)%{_datadir}/munin,;
-  s,^LOGDIR     = \(.*\),LOGDIR     = $(DESTDIR)/var/log/munin,;
-  s,^PERL       := \(.*\),PERL       := /usr/bin/perl,;
-  s,^PERLSITELIB := \(.*\),PERLSITELIB := %{perl_vendorlib},;
-  s,^PLUGSTATE  = \(.*\),PLUGSTATE  = $(DBDIR)/plugin-state,;
-  s,^PREFIX     = \(.*\),PREFIX     = $(DESTDIR)/usr,;
-  s,^PYTHON     := \(.*\),PYTHON     := /usr/bin/python,;
-  s,^RUBY       := \(.*\),RUBY       := /usr/bin/ruby,;
-  s,^USER       := \(.*\),USER       := nobody,;
-  ' Makefile.config
-
 %if 0%{?rhel} < 6 && 0%{?fedora} < 11
 install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
 %endif
@@ -284,10 +258,14 @@ install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
 %patch10 -p1
 install -c %{SOURCE13} ./resources/
 
+# Create Makefile.config-dist
+install -c %{SOURCE20} .
+sed -i -e 's,^PERLSITELIB := \(.*\),PERLSITELIB := %{perl_vendorlib},;' Makefile.config-dist
+
 
 %build
 export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$(build-classpath mx4j):$CLASSPATH
-make    CONFIG=Makefile.config
+make    CONFIG=Makefile.config-dist
 
 # Convert to utf-8
 for file in Announce-2.0 COPYING ChangeLog Checklist HACKING.pod README RELEASE UPGRADING UPGRADING-1.4; do
@@ -306,12 +284,14 @@ done
 rm -rf ${buildroot}
 
 ## Node
-make    CONFIG=Makefile.config \
+export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$(build-classpath mx4j):$CLASSPATH
+make    CONFIG=Makefile.config-dist \
         DESTDIR=%{buildroot} \
         DOCDIR=%{buildroot}%{_docdir}/%{name}-%{version} \
         JAVALIBDIR=%{buildroot}%{_datadir}/java \
         MANDIR=%{buildroot}%{_mandir} \
         PREFIX=%{buildroot}%{_prefix} \
+        USER=nobody GROUP=nobody \
         install
 
 # Remove fonts
@@ -383,8 +363,11 @@ install -m 0644 %{SOURCE2} %{buildroot}/etc/munin/plugin-conf.d/hddtemp_smartctl
 # install logrotate scripts
 install -m 0644 %{SOURCE3} %{buildroot}/etc/logrotate.d/munin-node
 install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
-%if ! 0%{?fedora} > 15 || 0%{?rhel} > 6
+%if 0%{?fedora} > 15 || 0%{?rhel} > 6
+echo 'Using SU directive for logrotate.d'
+%else
 # Fedora >= 16 requires 'su' directive.
+echo 'Commenting out SU directive for logrotate.d'
 sed -i 's/su /#su /' %{buildroot}/etc/logrotate.d/munin-node
 sed -i 's/su /#su /' %{buildroot}/etc/logrotate.d/munin
 %endif
@@ -678,6 +661,10 @@ exit 0
 
 
 %changelog
+* Fri Dec 21 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.9-4
+- Use Makefile.config-dist instead of sed.
+- BZ# 890246,890247 "su" directive is not used in epel5/6 logrotate
+
 * Sun Dec 09 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.9-3
 - Add documentation links for async
 - BZ# 885422 Move munin-node logs to /var/log/munin-node/
@@ -770,7 +757,7 @@ exit 0
 * Thu Jul 19 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.2-2
 - fixed conflicts
 
-* Thu Jul 14 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.2-1
+* Sat Jul 14 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.2-1
 - updated to 2.0.2
 
 * Thu Jun 07 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.0-1
@@ -826,7 +813,7 @@ exit 0
 * Wed Jul 20 2011 Petr Sabata <contyk@redhat.com> - 1.4.6-2
 - Perl mass rebuild
 
-* Wed Jul  8 2011 D. Johnson <fenris02@fedoraproject.org> - 1.4.6-1
+* Fri Jul 08 2011 D. Johnson <fenris02@fedoraproject.org> - 1.4.6-1
 - update to 1.4.6
 
 * Fri Jun 17 2011 Marcela Mašláňová <mmaslano@redhat.com> - 1.4.5-13
