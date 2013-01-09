@@ -1,6 +1,6 @@
 Name:           munin
-Version:        2.0.9
-Release:        4%{?dist}
+Version:        2.0.10
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -37,6 +37,7 @@ Patch5:         acpi-2.0.5.patch
 Patch7:         munin-2.0-defect-1213.patch
 #Patch8:         munin-2.0.2-defect-1245-LimitsOld.pm-notify_alias.patch
 Patch9:         munin-2.0.8-cgitmp.patch
+# BZ# 877116 Patch using '&' in the URLs instead of '&amp;' in HTMLConfig
 Patch10:        munin-2.0.9_HTMLConfig.pm.patch
 
 BuildArch:      noarch
@@ -403,7 +404,7 @@ touch %{buildroot}/var/lib/munin/plugin-state/yum.state
 # Create CGI tmpdir space
 mkdir -p %{buildroot}/var/lib/munin/cgi-tmp/munin-cgi-graph
 
-# Fix config file so that it no longer references the build host
+# BZ# 881689 - Fix config file so that it no longer references the build host
 sed -i 's/^\[.*/\[localhost\]/' %{buildroot}/etc/munin/munin.conf
 
 # BZ# 885422 Move munin-node logs to /var/log/munin-node/
@@ -470,12 +471,12 @@ fi
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 # Newer installs use systemd
   %if 0%{?systemd_preun:1}
-    for svc in node asyncd ; do
+    for svc in node ; do
       %systemd_preun munin-${svc}.service
     done
   %else
     if [ "$1" = 0 ]; then
-      for svc in node asyncd ; do
+      for svc in node ; do
         /bin/systemctl --no-reload disable munin-${svc}.service >/dev/null 2>&1 || :
         /bin/systemctl stop munin-${svc}.service >/dev/null 2>&1 || :
       done
@@ -495,12 +496,12 @@ fi
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 # Newer installs use systemd
   %if 0%{?systemd_preun:1}
-    for svc in fcgi-html fcgi-graph; do
+    for svc in fcgi-html fcgi-graph ; do
       %systemd_preun munin-${svc}.service
     done
   %else
     if [ "$1" = 0 ]; then
-      for svc in node asyncd fcgi-html fcgi-graph; do
+      for svc in fcgi-html fcgi-graph ; do
         /bin/systemctl --no-reload disable munin-${svc}.service >/dev/null 2>&1 || :
         /bin/systemctl stop munin-${svc}.service >/dev/null 2>&1 || :
       done
@@ -661,6 +662,12 @@ exit 0
 
 
 %changelog
+* Wed Jan 09 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.10-1
+- Update to 2.0.10
+- BZ# 891940,892377 Only stop/restart services provided by sub-package, not deps.
+- BZ# 881689 Fix config file so that it no longer references the build host
+- BZ# 877116 Patch using '&' in the URLs instead of '&amp;' in HTMLConfig
+
 * Fri Dec 21 2012 D. Johnson <fenris02@fedoraproject.org> - 2.0.9-4
 - Use Makefile.config-dist instead of sed.
 - BZ# 890246,890247 "su" directive is not used in epel5/6 logrotate
