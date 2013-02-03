@@ -1,6 +1,6 @@
 Name:           munin
-Version:        2.0.10
-Release:        2%{?dist}
+Version:        2.0.11
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -662,6 +662,9 @@ exit 0
 
 
 %changelog
+* Sun Feb 03 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.11-1
+- Upstream release 2.0.11
+
 * Mon Jan 21 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.10-2
 - BZ# 896644 Wrong path to munin jar in jmx plugin
 
