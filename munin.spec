@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.11
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -34,7 +34,7 @@ Source20:       Makefile.config-dist
 Patch4:         munin-2.0.4-Utils-cluck.patch
 Patch5:         acpi-2.0.5.patch
 #Patch6:         munin-2.0.7-http_loadtime.patch
-Patch7:         munin-2.0-defect-1213.patch
+#Patch7:         munin-2.0-defect-1213.patch
 #Patch8:         munin-2.0.2-defect-1245-LimitsOld.pm-notify_alias.patch
 Patch9:         munin-2.0.8-cgitmp.patch
 # BZ# 877116 Patch using '&' in the URLs instead of '&amp;' in HTMLConfig
@@ -254,7 +254,7 @@ install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
 
 %patch4 -p0
 %patch5 -p0
-%patch7 -p1
+#% patch7 -p1
 %patch9 -p1
 %patch10 -p1
 install -c %{SOURCE13} ./resources/
@@ -662,6 +662,9 @@ exit 0
 
 
 %changelog
+* Mon Feb 04 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.11-2
+- BZ# 907369 revert HTMLOld.pm patch
+
 * Sun Feb 03 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.11-1
 - Upstream release 2.0.11
 
