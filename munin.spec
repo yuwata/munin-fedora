@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.11
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -89,6 +89,7 @@ Requires:       perl(DateTime)
 Requires:       perl(Time::HiRes)
 Requires:       perl(Taint::Runtime)
 Requires:       sysstat
+Requires:       webserver
 
 # SystemD
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
@@ -97,6 +98,7 @@ BuildRequires:  systemd-units
 
 # Munin node requires
 Requires:       perl(Cache::Memcached)
+Requires:       perl(Carp::Always)
 Requires:       perl(Crypt::DES)
 Requires:       perl(Digest::HMAC)
 Requires:       perl(Digest::SHA1)
@@ -173,6 +175,9 @@ or similar technology.
 Munin is written in Perl, and relies heavily on Tobi Oetiker's excellent
 RRDtool.
 
+Creaete a munin web user after installing:
+htpasswd -bc /etc/munin/munin-htpasswd MUNIN_WEB_USER PASSWORD
+
 %package async
 Group:          System Environment/Daemons
 Summary:        Network-wide graphing framework (asynchronous client tools)
@@ -215,6 +220,19 @@ Requires:       jpackage-utils
 
 %description java-plugins
 java-plugins for munin-node.
+
+Install this sub-package for the jmx node plugin.
+
+%package ruby-plugins
+Group:          System Environment/Daemons
+Summary:        ruby-plugins for munin
+Requires:       %{name}-node = %{version}
+BuildArch:      noarch
+
+%description ruby-plugins
+ruby-plugins for munin-node.
+
+Install this sub-package for the tomcat node plugin.
 
 
 # BZ# 861816 munin-2.x CGI support is broken without manual hacks
@@ -566,6 +584,7 @@ exit 0
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/munin.conf
 %config(noreplace) %{_sysconfdir}/logrotate.d/munin
 %config(noreplace) %{_sysconfdir}/munin/munin.conf
+%config(noreplace) %{_sysconfdir}/munin/munin-htpasswd
 %config(noreplace) %{_sysconfdir}/munin/static/*
 %config(noreplace) %{_sysconfdir}/munin/templates/partial/*.tmpl
 %config(noreplace) %{_sysconfdir}/munin/templates/*.tmpl
@@ -614,6 +633,7 @@ exit 0
 %attr(0755,root,root) %{_sbindir}/munin-node-configure
 %attr(-,munin,munin) /var/lib/munin/plugin-state/yum.state
 %exclude %{_datadir}/munin/plugins/jmx_
+%exclude %{_datadir}/munin/plugins/tomcat_
 %{_datadir}/munin/plugins/
 %{perl_vendorlib}/Munin/Node
 %{perl_vendorlib}/Munin/Plugin*
@@ -645,6 +665,9 @@ exit 0
 %{_datadir}/java/munin-jmx-plugins.jar
 %{_datadir}/munin/plugins/jmx_
 
+%files ruby-plugins
+%defattr(-,root,root)
+%{_datadir}/munin/plugins/tomcat_
 
 %files cgi
 %defattr(-,root,root)
@@ -652,7 +675,6 @@ exit 0
 %attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-html
 %config(noreplace) %{_sysconfdir}/sysconfig/spawn-fcgi-munin
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/munin-cgi.conf
-%config(noreplace) %{_sysconfdir}/munin/munin-htpasswd
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 /lib/systemd/system/munin-fcgi-html.service
 /lib/systemd/system/munin-fcgi-graph.service
@@ -662,6 +684,9 @@ exit 0
 
 
 %changelog
+* Wed Feb 06 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.11-3
+- Split out tomcat plugin to remove ruby dep from node.
+
 * Mon Feb 04 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.11-2
 - BZ# 907369 revert HTMLOld.pm patch
 
