@@ -1,6 +1,6 @@
 Name:           munin
-Version:        2.0.11
-Release:        3%{?dist}
+Version:        2.0.11.1
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -138,6 +138,9 @@ pages, suitable for viewing with your graphical web browser of choice.
 Munin is written in Perl, and relies heavily on Tobi Oetiker's excellent
 RRDtool.
 
+Creaete a munin web user after installing:
+htpasswd -bc /etc/munin/munin-htpasswd MUNIN_WEB_USER PASSWORD
+
 
 %package node
 Group:          System Environment/Daemons
@@ -174,9 +177,6 @@ or similar technology.
 
 Munin is written in Perl, and relies heavily on Tobi Oetiker's excellent
 RRDtool.
-
-Creaete a munin web user after installing:
-htpasswd -bc /etc/munin/munin-htpasswd MUNIN_WEB_USER PASSWORD
 
 %package async
 Group:          System Environment/Daemons
@@ -324,11 +324,16 @@ install -m 0644 %{SOURCE4} %{buildroot}/etc/logrotate.d/munin
 # BZ#821912 - Move .htaccess to apache config to allow easier user-access changes.
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
 sed -e 's/# </</g' %{buildroot}/var/www/html/munin/.htaccess > %{buildroot}%{_sysconfdir}/httpd/conf.d/munin.conf
+echo "ScriptAlias /munin-cgi/munin-cgi-graph /var/www/cgi-bin/munin-cgi-graph" >> \
+  %{buildroot}%{_sysconfdir}/httpd/conf.d/munin.conf
 rm %{buildroot}/var/www/html/munin/.htaccess
 
 # install cron script
 mkdir -p %{buildroot}/etc/cron.d
 install -m 0644 %{SOURCE17} %{buildroot}/etc/cron.d/munin
+
+# BZ# 908711
+mv %{buildroot}/usr/share/munin/munin-asyncd %{buildroot}/usr/sbin/munin-asyncd
 
 # SystemD
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
@@ -579,6 +584,8 @@ exit 0
 %dir %attr(0775,root,munin) /var/lib/munin/plugin-state
 %attr(0755,munin,munin) %dir /var/www/html/munin
 %attr(0755,munin,munin) %dir /var/www/html/munin/static
+%attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-graph
+%attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-html
 %attr(0644,munin,munin) /var/www/html/munin/static/*
 %config(noreplace) %attr(0644,root,root) %{_sysconfdir}/cron.d/munin
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/munin.conf
@@ -641,7 +648,8 @@ exit 0
 
 %files async
 %defattr(-,root,root)
-%{_datadir}/munin/munin-async*
+%{_sbindir}/munin-asyncd
+%{_datadir}/munin/munin-async
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 /lib/systemd/system/munin-asyncd.service
 %else
@@ -671,8 +679,6 @@ exit 0
 
 %files cgi
 %defattr(-,root,root)
-%attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-graph
-%attr(0755,root,munin) /var/www/cgi-bin/munin-cgi-html
 %config(noreplace) %{_sysconfdir}/sysconfig/spawn-fcgi-munin
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/munin-cgi.conf
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
@@ -684,6 +690,12 @@ exit 0
 
 
 %changelog
+* Sat Feb 09 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.11.1-1
+- Upstream version 2.0.11.1
+
+* Thu Feb 07 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.11-4
+- BZ# 908711 munin-async: wrong path in init script
+
 * Wed Feb 06 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.11-3
 - Split out tomcat plugin to remove ruby dep from node.
 
