@@ -108,6 +108,8 @@ Requires:       perl(Net::Server::Fork)
 Requires:       perl(Net::SNMP)
 Requires:       perl(Net::SSLeay)
 Requires:       perl(Time::HiRes)
+# mysql plugin requires perl(Cache::Cache)
+Requires:       perl(Cache::Cache)
 
 # Munin node java monitor requires
 #Requires:       java-jmx # rhel<5
