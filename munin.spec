@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.11.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -89,7 +89,8 @@ Requires:       perl(DateTime)
 Requires:       perl(Time::HiRes)
 Requires:       perl(Taint::Runtime)
 Requires:       sysstat
-Requires:       webserver
+# BZ#913111 : Removed because it pulls boa .. and no clean way to prefer apache.
+#Requires:       webserver
 
 # SystemD
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
@@ -692,6 +693,10 @@ exit 0
 
 
 %changelog
+* Fri Feb 22 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.11.1-2
+- BZ# 913111 Removed R:webserver because it pulls boa .. and no clean way to
+  prefer apache.
+
 * Sat Feb 09 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.11.1-1
 - Upstream version 2.0.11.1
 
