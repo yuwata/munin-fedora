@@ -696,6 +696,7 @@ exit 0
 * Fri Feb 22 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.11.1-2
 - BZ# 913111 Removed R:webserver because it pulls boa .. and no clean way to
   prefer apache.
+- BZ# 917002 munin-asyncd should wait for munin-node
 
 * Sat Feb 09 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.11.1-1
 - Upstream version 2.0.11.1
