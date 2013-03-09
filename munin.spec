@@ -492,6 +492,31 @@ exit 0
 if [ "$1" = "1" ]; then
      /usr/sbin/munin-node-configure --shell 2> /dev/null | sh >& /dev/null || :
 fi
+%if 0%{?rhel} > 6 || 0%{?fedora} > 15
+  %if 0%{?systemd_post:1}
+    %systemd_post munin-node.service
+  %else
+    if [ $1 -eq 1 ] ; then
+      # Initial installation
+      /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+    fi
+  %endif
+%endif
+
+%post async
+%if ! 0%{?fedora} > 15 || 0%{?rhel} > 6
+  /sbin/chkconfig --add munin-asyncd
+%endif
+%if 0%{?rhel} > 6 || 0%{?fedora} > 15
+  %if 0%{?systemd_post:1}
+    %systemd_post munin-asyncd.service
+  %else
+    if [ $1 -eq 1 ] ; then
+      # Initial installation
+      /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+    fi
+  %endif
+%endif
 
 %preun node
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
@@ -511,7 +536,7 @@ fi
 %else
 # Older installs use sysvinit / upstart
 if [ "$1" = 0 ]; then
-  for svc in node asyncd fcgi-html fcgi-graph; do
+  for svc in node fcgi-html fcgi-graph; do
     service munin-${svc} stop &>/dev/null || :
     /sbin/chkconfig --del munin-${svc}
   done
