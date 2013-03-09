@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.11.1
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -718,6 +718,9 @@ exit 0
 
 
 %changelog
+* Sat Mar 09 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.11.1-3
+- Update systemd scriptlets
+
 * Fri Feb 22 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.11.1-2
 - BZ# 913111 Removed R:webserver because it pulls boa .. and no clean way to
   prefer apache.
