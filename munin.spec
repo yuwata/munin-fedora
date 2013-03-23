@@ -59,6 +59,8 @@ BuildRequires:  perl(Time::HiRes)
 BuildRequires:  perl(Net::SSLeay)
 BuildRequires:  perl(HTML::Template)
 BuildRequires:  perl(LWP::UserAgent)
+# Work-around for koji
+BuildRequires:  perl-Carp
 # RHEL6+ BuildRequires:  perl(Log::Log4perl) >= 1.18
 %if 0%{?rhel} > 5 || 0%{?fedora} > 11
 BuildRequires:  perl(Log::Log4perl) >= 1.18
