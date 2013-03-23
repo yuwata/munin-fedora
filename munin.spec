@@ -60,7 +60,9 @@ BuildRequires:  perl(Net::SSLeay)
 BuildRequires:  perl(HTML::Template)
 BuildRequires:  perl(LWP::UserAgent)
 # Work-around for koji
+%if 0%{?rhel} > 6 || 0%{?fedora} > 16
 BuildRequires:  perl-Carp
+%endif
 # RHEL6+ BuildRequires:  perl(Log::Log4perl) >= 1.18
 %if 0%{?rhel} > 5 || 0%{?fedora} > 11
 BuildRequires:  perl(Log::Log4perl) >= 1.18
