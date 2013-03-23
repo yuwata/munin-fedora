@@ -1,6 +1,6 @@
 Name:           munin
-Version:        2.0.11.1
-Release:        3%{?dist}
+Version:        2.0.12
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -241,7 +241,7 @@ Install this sub-package for the tomcat node plugin.
 # BZ# 861816 munin-2.x CGI support is broken without manual hacks
 %package cgi
 Group:          System Environment/Daemons
-Summary:        Network-wide graphing framework (common files)
+Summary:        Network-wide graphing framework (cgi files)
 BuildArch:      noarch
 Requires:       %{name}-common = %{version}
 Requires:       mod_fcgid
@@ -458,6 +458,7 @@ sed -i -e '
   s,owner_ok /var/lib/munin .*,owner_ok /var/lib/munin munin,;
   s,owner_ok /var/lib/munin/plugin-state .*,owner_ok /var/lib/munin/plugin-state root,;
   ' %{buildroot}/usr/bin/munin-check
+
 
 %clean
 rm -rf %{buildroot}
@@ -701,9 +702,11 @@ exit 0
 %{_datadir}/java/munin-jmx-plugins.jar
 %{_datadir}/munin/plugins/jmx_
 
+
 %files ruby-plugins
 %defattr(-,root,root)
 %{_datadir}/munin/plugins/tomcat_
+
 
 %files cgi
 %defattr(-,root,root)
@@ -718,6 +721,9 @@ exit 0
 
 
 %changelog
+* Fri Mar 22 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.12-1
+- Upstream release 2.0.12
+
 * Sat Mar 09 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.11.1-3
 - Update systemd scriptlets
 
