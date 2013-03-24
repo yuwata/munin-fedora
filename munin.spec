@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.12
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -359,6 +359,7 @@ install -m 0644 %{SOURCE14} %{buildroot}/lib/systemd/system/munin-asyncd.service
 install -m 0644 %{SOURCE15} %{buildroot}/lib/systemd/system/munin-fcgi-html.service
 install -m 0644 %{SOURCE16} %{buildroot}/lib/systemd/system/munin-fcgi-graph.service
 %endif
+mkdir -p %{buildroot}/var/lib/munin/spool
 
 # install tmpfiles.d entry
 %if 0%{?rhel} > 6 || 0%{?fedora} > 14
@@ -523,28 +524,23 @@ fi
   %endif
 %endif
 
+
 %preun node
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 # Newer installs use systemd
   %if 0%{?systemd_preun:1}
-    for svc in node ; do
-      %systemd_preun munin-${svc}.service
-    done
+    %systemd_preun munin-node.service
   %else
     if [ "$1" = 0 ]; then
-      for svc in node ; do
-        /bin/systemctl --no-reload disable munin-${svc}.service >/dev/null 2>&1 || :
-        /bin/systemctl stop munin-${svc}.service >/dev/null 2>&1 || :
-      done
+      /bin/systemctl --no-reload disable munin-node.service >/dev/null 2>&1 || :
+      /bin/systemctl stop munin-node.service >/dev/null 2>&1 || :
     fi
   %endif
 %else
 # Older installs use sysvinit / upstart
 if [ "$1" = 0 ]; then
-  for svc in node fcgi-html fcgi-graph; do
-    service munin-${svc} stop &>/dev/null || :
-    /sbin/chkconfig --del munin-${svc}
-  done
+  service munin-node stop &>/dev/null || :
+  /sbin/chkconfig --del munin-node
 fi
 %endif
 
@@ -683,6 +679,7 @@ exit 0
 %defattr(-,root,root)
 %{_sbindir}/munin-asyncd
 %{_datadir}/munin/munin-async
+%dir /var/lib/munin/spool
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 /lib/systemd/system/munin-asyncd.service
 %else
@@ -725,6 +722,9 @@ exit 0
 
 
 %changelog
+* Sun Mar 24 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.12-2
+- BZ# 917002 minor edits for asyncd
+
 * Fri Mar 22 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.12-1
 - Upstream release 2.0.12
 
