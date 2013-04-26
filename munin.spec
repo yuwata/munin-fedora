@@ -1,6 +1,6 @@
 Name:           munin
-Version:        2.0.12
-Release:        2%{?dist}
+Version:        2.0.13
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -419,6 +419,12 @@ user munin
 user munin
 EOT.node
 
+# http://munin-monitoring.org/ticket/808
+cat - >> %{buildroot}/etc/munin/plugin-conf.d/fw_ <<EOT.fw
+[fw_*]
+user root
+EOT.fw
+
 # Preload static html files
 mkdir -p %{buildroot}/var/www/html/munin/
 cp -r %{buildroot}/etc/munin/static %{buildroot}/var/www/html/munin/
@@ -655,6 +661,7 @@ exit 0
 %config(noreplace) %{_sysconfdir}/logrotate.d/munin-node
 %config(noreplace) %{_sysconfdir}/munin/munin-node.conf
 %config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/df
+%config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/fw_
 %config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/hddtemp_smartctl
 %config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/munin-node
 %config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/postfix
@@ -722,6 +729,12 @@ exit 0
 
 
 %changelog
+* Fri Apr 26 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.13-1
+- Upstream released 2.0.13
+
+* Mon Apr 01 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.12-3
+- Add fw_ default config
+
 * Sun Mar 24 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.12-2
 - BZ# 917002 minor edits for asyncd
 
