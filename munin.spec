@@ -28,6 +28,9 @@ Source17:       munin.cron.d
 Source18:       munin-node.rc
 Source19:       httpd_munin-cgi.conf
 Source20:       Makefile.config-dist
+Source21:       nginx_munin.conf
+Source22:       munin-fcgi-html.rc
+Source23:       munin-fcgi-graph.rc
 
 #Patch1:         munin-1.4.6-restorecon.patch
 #Patch2:         munin-1.4.2-fontfix.patch
@@ -245,11 +248,10 @@ Install this sub-package for the tomcat node plugin.
 # BZ# 861816 munin-2.x CGI support is broken without manual hacks
 %package cgi
 Group:          System Environment/Daemons
-Summary:        Network-wide graphing framework (cgi files)
+Summary:        Network-wide graphing framework (cgi files for apache)
 BuildArch:      noarch
 Requires:       %{name}-common = %{version}
 Requires:       mod_fcgid
-Requires:       spawn-fcgi
 
 %description cgi
 Munin package uses cron by default.  This package contains the CGI files that
@@ -264,6 +266,27 @@ QUICK-HOWTO:
 sed -i 's/\(.*\)_strategy.*/\1_strategy cgi/' /etc/munin/munin.conf
 htpasswd -bc /etc/munin/munin-htpasswd MUNIN_WEB_USER PASSWORD
 for svc in httpd munin-node ; do
+  service $svc stop
+  chkconfig $svc on
+  service $svc start
+done
+
+# BZ# 905421
+%package nginx
+Group:          System Environment/Daemons
+Summary:        Network-wide graphing framework (cgi files for nginx)
+BuildArch:      noarch
+Requires:       %{name}-common = %{version}
+Requires:       spawn-fcgi
+
+%description nginx
+Munin package uses cron by default.  This package contains the CGI files that
+can generate HTML and graphs dynamically. This enables munin to scale better
+for a master with many nodes.
+
+QUICK-HOWTO:
+sed -i 's/\(.*\)_strategy.*/\1_strategy cgi/;s/#cgiurl_graph/cgiurl_graph/' /etc/munin/munin.conf
+for svc in munin-fcgi-graph munin-fcgi-html nginx ; do
   service $svc stop
   chkconfig $svc on
   service $svc start
@@ -373,6 +396,8 @@ mkdir -p %{buildroot}/etc/rc.d/init.d
 cat %{SOURCE18} | sed -e 's/2345/\-/' > %{buildroot}/etc/rc.d/init.d/munin-node
 chmod 755 %{buildroot}/etc/rc.d/init.d/munin-node
 install -m 0755 %{SOURCE13} %{buildroot}/etc/rc.d/init.d/munin-asyncd
+install -m 0755 %{SOURCE22} %{buildroot}/etc/rc.d/init.d/munin-fcgi-html
+install -m 0755 %{SOURCE23} %{buildroot}/etc/rc.d/init.d/munin-fcgi-graph
 %endif
 
 # Fix default config file
@@ -380,6 +405,7 @@ sed -i '
   s,/etc/munin/munin-conf.d,/etc/munin/conf.d,;
   s,#html_strategy.*,html_strategy cron,;
   s,#graph_strategy.*,graph_strategy cron,;
+  s,#cgiurl_graph,cgiurl_graph,;
   ' %{buildroot}/etc/munin/munin.conf
 mkdir -p %{buildroot}/etc/munin/conf.d
 mkdir -p %{buildroot}/etc/munin/plugin-conf.d
@@ -451,13 +477,8 @@ sed -i 's,^log_file .*,log_file /var/log/munin-node/munin-node.log,' %{buildroot
 # Create sample fcgi config files
 mkdir -p %{buildroot}/etc/sysconfig %{buildroot}/etc/httpd/conf.d
 cp %{SOURCE19} %{buildroot}/etc/httpd/conf.d/munin-cgi.conf
-cat > %{buildroot}/etc/sysconfig/spawn-fcgi-munin <<EOT.spawn
-# SAMPLE: Rename this file to /etc/sysconfig/spawn-fcgi and edit to fit
-# (Without this, nginx + munin-cgi will not work properly via init script)
-SOCKET=/var/run/mod_fcgid/fcgi-graph.sock
-OPTIONS="-U apache -u apache -g apache -s $SOCKET -S -M 0600 -C 32 -F 1 -P /var/run/spawn-fcgi.pid -- /var/www/cgi-bin/munin-cgi-graph"
-
-EOT.spawn
+mkdir -p %{buildroot}/etc/nginx/conf.d
+cp %{SOURCE21} %{buildroot}/etc/nginx/conf.d/munin.conf
 
 # Create sample htpasswd file
 touch %{buildroot}/etc/munin/munin-htpasswd
@@ -493,6 +514,11 @@ exit 0
 /usr/bin/getent passwd munin >/dev/null || \
   /usr/sbin/useradd -r -g munin -d /var/lib/munin -s /sbin/nologin \
     -c "Munin user" munin
+exit 0
+
+#why this? search for BUG above
+%pre cgi
+chown apache /var/log/munin
 exit 0
 
 %post node
@@ -550,7 +576,7 @@ if [ "$1" = 0 ]; then
 fi
 %endif
 
-%preun cgi
+%preun nginx
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 # Newer installs use systemd
   %if 0%{?systemd_preun:1}
@@ -615,6 +641,12 @@ exit 0
 %dir %{_sysconfdir}/munin/templates/partial
 %dir %{_datadir}/munin
 %dir %{_datadir}/munin/plugins
+#BUG. User apache does not necessarily exists when installing package munin
+#since httpd is not required. it matters if httpd is later installed and
+#the munin graph or html cgi programs are used - they log here.
+#this is fixed with %%pre cgi, but if user tries to use the cgi programs
+#without the cgi package, it's tough luck.
+#proper fix may be to create the apache user in pre, but I'm not gonna do it.
 %dir %attr(0775,apache,munin) /var/log/munin
 %dir %attr(0775,root,munin) /var/lib/munin/plugin-state
 %attr(0755,munin,munin) %dir /var/www/html/munin
@@ -718,7 +750,6 @@ exit 0
 
 %files cgi
 %defattr(-,root,root)
-%config(noreplace) %{_sysconfdir}/sysconfig/spawn-fcgi-munin
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/munin-cgi.conf
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 /lib/systemd/system/munin-fcgi-html.service
@@ -728,9 +759,25 @@ exit 0
 %attr(0755,apache,apache) %dir /var/lib/munin/cgi-tmp/munin-cgi-graph
 
 
+%files nginx
+%defattr(-,root,root)
+%config(noreplace) %{_sysconfdir}/nginx/conf.d/munin.conf
+%if 0%{?rhel} > 6 || 0%{?fedora} > 15
+/lib/systemd/system/munin-fcgi-html.service
+/lib/systemd/system/munin-fcgi-graph.service
+%else
+%{_sysconfdir}/rc.d/init.d/munin-fcgi-html
+%{_sysconfdir}/rc.d/init.d/munin-fcgi-graph
+%endif
+
+
 %changelog
 * Fri Apr 26 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.13-1
 - Upstream released 2.0.13
+
+* Thu Apr 4 2013 Viljo Viitanen <viljo.viitanen@iki.fi> - 2.0.12-4
+- BZ #905421 add nginx cgi package, removed unnecessary services from apache
+  cgi package
 
 * Mon Apr 01 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.12-3
 - Add fw_ default config
