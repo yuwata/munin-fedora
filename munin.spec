@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.14
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -271,7 +271,7 @@ for svc in httpd munin-node ; do
   service $svc start
 done
 
-# BZ# 905421
+# BZ# 905241
 %package nginx
 Group:          System Environment/Daemons
 Summary:        Network-wide graphing framework (cgi files for nginx)
@@ -772,6 +772,9 @@ exit 0
 
 
 %changelog
+* Wed May 22 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.14-2
+- Corrected bugid 905241 references
+
 * Sat May 11 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.14-1
 - Upstream released 2.0.14
 
@@ -779,7 +782,7 @@ exit 0
 - Upstream released 2.0.13
 
 * Thu Apr 4 2013 Viljo Viitanen <viljo.viitanen@iki.fi> - 2.0.12-4
-- BZ #905421 add nginx cgi package, removed unnecessary services from apache
+- BZ #905241 add nginx cgi package, removed unnecessary services from apache
   cgi package
 
 * Mon Apr 01 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.12-3
