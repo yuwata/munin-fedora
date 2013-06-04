@@ -1,5 +1,5 @@
 Name:           munin
-Version:        2.0.15
+Version:        2.0.16
 Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
@@ -772,6 +772,9 @@ exit 0
 
 
 %changelog
+* Tue Jun 04 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.16-1
+- Upstream released 2.0.16
+
 * Sat Jun 01 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.15-1
 - Upstream released 2.0.15
 
