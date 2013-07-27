@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.17
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -96,6 +96,7 @@ Requires:       perl(DateTime)
 Requires:       perl(Time::HiRes)
 Requires:       perl(Taint::Runtime)
 Requires:       sysstat
+Requires:       crontabs
 # BZ#913111 : Removed because it pulls boa .. and no clean way to prefer apache.
 #Requires:       webserver
 
@@ -772,6 +773,9 @@ exit 0
 
 
 %changelog
+* Sat Jul 27 2013 JÃ³hann B. GuÃ°mundsson <johannbg@fedoraproject.org> - 2.0.17-2
+- BZ# 989080 Add a missing requirement on crontabs to spec file
+
 * Sat Jul 20 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.17-1
 - Upstream release 2.0.17
 
