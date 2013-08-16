@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.17
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -337,7 +337,11 @@ rm -rf ${buildroot}
 export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$(build-classpath mx4j):$CLASSPATH
 make    CONFIG=Makefile.config-dist \
         DESTDIR=%{buildroot} \
+%if 0%{?rhel} > 7 || 0%{?fedora} > 19
+        DOCDIR=%{buildroot}%{_docdir}/%{name} \
+%else
         DOCDIR=%{buildroot}%{_docdir}/%{name}-%{version} \
+%endif
         JAVALIBDIR=%{buildroot}%{_datadir}/java \
         MANDIR=%{buildroot}%{_mandir} \
         PREFIX=%{buildroot}%{_prefix} \
@@ -773,6 +777,9 @@ exit 0
 
 
 %changelog
+* Fri Aug 16 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.17-5
+- BZ# 993985: munin possibly affected by F-20 unversioned docdir change
+
 * Sat Aug 03 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.0.17-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
 
