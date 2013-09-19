@@ -786,7 +786,7 @@ exit 0
 * Thu Aug 01 2013 Petr Pisar <ppisar@redhat.com> - 2.0.17-3
 - Perl 5.18 rebuild
 
-* Sat Jul 27 2013 JÃ³hann B. GuÃ°mundsson <johannbg@fedoraproject.org> - 2.0.17-2
+* Sat Jul 27 2013 Jóhann B. Guðmundsson <johannbg@fedoraproject.org> - 2.0.17-2
 - BZ# 989080 Add a missing requirement on crontabs to spec file
 
 * Sat Jul 20 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.17-1
