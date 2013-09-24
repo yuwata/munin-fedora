@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.17
-Release:        5%{?dist}
+Release:        6%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -292,6 +292,15 @@ for svc in munin-fcgi-graph munin-fcgi-html nginx ; do
   chkconfig $svc on
   service $svc start
 done
+
+%package netip-plugins
+Group:          System Environment/Daemons
+Summary:        Network-wide graphing framework (dhcpd3 and ntp plugins)
+BuildArch:      noarch
+Requires:       %{name}-common = %{version}
+
+%description netip-plugins
+Munin plugins that require Net::IP.  This is only dhcpd3 and ntp currently.
 
 
 %prep
@@ -712,7 +721,9 @@ exit 0
 %attr(0755,root,root) %{_sbindir}/munin-node
 %attr(0755,root,root) %{_sbindir}/munin-node-configure
 %attr(-,munin,munin) /var/lib/munin/plugin-state/yum.state
+%exclude %{_datadir}/munin/plugins/dhcpd3
 %exclude %{_datadir}/munin/plugins/jmx_
+%exclude %{_datadir}/munin/plugins/ntp_
 %exclude %{_datadir}/munin/plugins/tomcat_
 %{_datadir}/munin/plugins/
 %{perl_vendorlib}/Munin/Node
@@ -776,7 +787,16 @@ exit 0
 %endif
 
 
+%files netip-plugins
+%defattr(-,root,root)
+%{_datadir}/munin/plugins/dhcpd3
+%{_datadir}/munin/plugins/ntp_
+
+
 %changelog
+* Tue Sep 24 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.17-6
+- Move Net::IP plugins to a subpackage for dep handling
+
 * Fri Aug 16 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.17-5
 - BZ# 993985: munin possibly affected by F-20 unversioned docdir change
 
