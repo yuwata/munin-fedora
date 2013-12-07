@@ -1,6 +1,6 @@
 Name:           munin
-Version:        2.0.17
-Release:        6%{?dist}
+Version:        2.0.18
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -794,6 +794,9 @@ exit 0
 
 
 %changelog
+* Sat Dec 07 2013 drjohnson1@gmail.com - 2.0.18-1
+- BZ# 1037890,1037889,1037888: CVE-2013-6359
+
 * Tue Sep 24 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.17-6
 - Move Net::IP plugins to a subpackage for dep handling
 
