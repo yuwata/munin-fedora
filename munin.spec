@@ -1,6 +1,6 @@
 Name:           munin
-Version:        2.0.18
-Release:        2%{?dist}
+Version:        2.0.19
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -798,6 +798,9 @@ exit 0
 
 
 %changelog
+* Sun Dec 08 2013 drjohnson1@gmail.com - 2.0.19-1
+- Upstream to 2.0.19
+
 * Sun Dec 08 2013 drjohnson1@gmail.com - 2.0.18-2
 - Modifying hostname require for f21
 
