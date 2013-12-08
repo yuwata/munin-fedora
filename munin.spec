@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.18
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -45,12 +45,14 @@ Patch10:        munin-2.0.9_HTMLConfig.pm.patch
 
 BuildArch:      noarch
 
-BuildRequires:  perl >= 5.8
-%if 0%{?rhel} > 6 || 0%{?fedora} > 12
-BuildRequires:  perl(Directory::Scratch)
+%if 0%{?fedora} > 20
 BuildRequires:  /usr/bin/hostname
 %else
 BuildRequires:  /bin/hostname
+%endif
+BuildRequires:  perl >= 5.8
+%if 0%{?rhel} > 6 || 0%{?fedora} > 12
+BuildRequires:  perl(Directory::Scratch)
 %endif
 BuildRequires:  perl(Module::Build)
 BuildRequires:  perl(Net::Server)
@@ -796,6 +798,9 @@ exit 0
 
 
 %changelog
+* Sun Dec 08 2013 drjohnson1@gmail.com - 2.0.18-2
+- Modifying hostname require for f21
+
 * Sat Dec 07 2013 drjohnson1@gmail.com - 2.0.18-1
 - BZ# 1037890,1037889,1037888: CVE-2013-6359
 
