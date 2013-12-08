@@ -45,10 +45,12 @@ Patch10:        munin-2.0.9_HTMLConfig.pm.patch
 
 BuildArch:      noarch
 
-BuildRequires:  /bin/hostname
 BuildRequires:  perl >= 5.8
 %if 0%{?rhel} > 6 || 0%{?fedora} > 12
 BuildRequires:  perl(Directory::Scratch)
+BuildRequires:  /usr/bin/hostname
+%else
+BuildRequires:  /bin/hostname
 %endif
 BuildRequires:  perl(Module::Build)
 BuildRequires:  perl(Net::Server)
