@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.19
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -798,13 +798,16 @@ exit 0
 
 
 %changelog
-* Sun Dec 08 2013 drjohnson1@gmail.com - 2.0.19-1
+* Wed Mar 26 2014 D. Johnson <fenris02@fedoraproject.org> - 2.0.19-2
+- BZ# 1081254: Start asyncd after node
+
+* Sun Dec 08 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.19-1
 - Upstream to 2.0.19
 
-* Sun Dec 08 2013 drjohnson1@gmail.com - 2.0.18-2
+* Sun Dec 08 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.18-2
 - Modifying hostname require for f21
 
-* Sat Dec 07 2013 drjohnson1@gmail.com - 2.0.18-1
+* Sat Dec 07 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.18-1
 - BZ# 1037890,1037889,1037888: CVE-2013-6359
 
 * Tue Sep 24 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.17-6
