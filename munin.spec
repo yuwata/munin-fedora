@@ -534,20 +534,12 @@ exit 0
     -c "Munin user" munin
 exit 0
 
-#why this? search for BUG above
 %pre cgi
+#why this? search for BUG above
 chown apache /var/log/munin
 exit 0
 
 %post node
-# sysvinit only in f15 and older and epel
-%if ! 0%{?fedora} > 15 || 0%{?rhel} > 6
-/sbin/chkconfig --add munin-node
-%endif
-# Only run configure on a new install, not an upgrade.
-if [ "$1" = "1" ]; then
-     /usr/sbin/munin-node-configure --shell 2> /dev/null | sh >& /dev/null || :
-fi
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
   %if 0%{?systemd_post:1}
     %systemd_post munin-node.service
@@ -557,7 +549,14 @@ fi
       /bin/systemctl daemon-reload >/dev/null 2>&1 || :
     fi
   %endif
+%else
+  # sysvinit only in f15 and older and epel
+  /sbin/chkconfig --add munin-node
 %endif
+# Only run configure on a new install, not an upgrade.
+if [ "$1" = "1" ]; then
+     /usr/sbin/munin-node-configure --shell 2> /dev/null | sh >& /dev/null || :
+fi
 
 %post async
 %if ! 0%{?fedora} > 15 || 0%{?rhel} > 6
@@ -800,6 +799,7 @@ exit 0
 %changelog
 * Wed Mar 26 2014 D. Johnson <fenris02@fedoraproject.org> - 2.0.19-2
 - BZ# 1081254: Start asyncd after node
+- BZ# 1028075: munin-node doesn't get added to chkconfig
 
 * Sun Dec 08 2013 D. Johnson <fenris02@fedoraproject.org> - 2.0.19-1
 - Upstream to 2.0.19
