@@ -1,6 +1,6 @@
 Name:           munin
-Version:        2.0.19
-Release:        2%{?dist}
+Version:        2.0.20
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -559,9 +559,6 @@ if [ "$1" = "1" ]; then
 fi
 
 %post async
-%if ! 0%{?fedora} > 15 || 0%{?rhel} > 6
-  /sbin/chkconfig --add munin-asyncd
-%endif
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
   %if 0%{?systemd_post:1}
     %systemd_post munin-asyncd.service
@@ -571,8 +568,10 @@ fi
       /bin/systemctl daemon-reload >/dev/null 2>&1 || :
     fi
   %endif
+%else
+  # sysvinit only in f15 and older and epel
+  /sbin/chkconfig --add munin-asyncd
 %endif
-
 
 %preun node
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
@@ -797,6 +796,10 @@ exit 0
 
 
 %changelog
+* Fri Mar 28 2014 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.20-1
+- Upstream released 2.0.20
+- BZ# 1082162: munin-asyncd doesn't get added to chkconfig
+
 * Wed Mar 26 2014 D. Johnson <fenris02@fedoraproject.org> - 2.0.19-2
 - BZ# 1081254: Start asyncd after node
 - BZ# 1028075: munin-node doesn't get added to chkconfig
