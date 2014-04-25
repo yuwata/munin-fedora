@@ -798,7 +798,6 @@ exit 0
 %changelog
 * Fri Apr 25 2014 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.21-1
 - Upstream released 2.0.21
-- BZ# 1091219: Graphing subgroups stopped working in 2.0.20
 
 * Fri Mar 28 2014 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.20-1
 - Upstream released 2.0.20
