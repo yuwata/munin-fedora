@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.21
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -490,7 +490,10 @@ sed -i 's/^\[.*/\[localhost\]/' %{buildroot}/etc/munin/munin.conf
 
 # BZ# 885422 Move munin-node logs to /var/log/munin-node/
 mkdir -p %{buildroot}/var/log/munin-node
-sed -i 's,^log_file .*,log_file /var/log/munin-node/munin-node.log,' %{buildroot}/etc/munin/munin-node.conf
+sed -i -e '
+  s,^log_file .*,log_file /var/log/munin-node/munin-node.log,;
+  s,^#host_name .*,host_name localhost.localdomain,;
+  ' %{buildroot}/etc/munin/munin-node.conf
 
 # Create sample fcgi config files
 mkdir -p %{buildroot}/etc/sysconfig %{buildroot}/etc/httpd/conf.d
@@ -796,6 +799,9 @@ exit 0
 
 
 %changelog
+* Fri Aug 01 2014 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.21-3
+- Default to a localhost name to prevent munin-node from complaining
+
 * Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.0.21-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
 
