@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.21
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -799,6 +799,9 @@ exit 0
 
 
 %changelog
+* Fri Aug 29 2014 Jitka Plesnikova <jplesnik@redhat.com> - 2.0.21-4
+- Perl 5.20 rebuild
+
 * Fri Aug 01 2014 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.21-3
 - Default to a localhost name to prevent munin-node from complaining
 
