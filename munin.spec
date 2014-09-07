@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.21
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -110,12 +110,20 @@ BuildRequires:  systemd-units
 %endif
 
 # Munin node requires
+%if 0%{?rhel} > 6
+#Requires:       perl(Cache::Memcached)
+#Requires:       perl(Carp::Always)
+# This one is in fact optional, only needed for cidr_allow in munin-node,
+# which is documented in the manual page. Not present in el7.
+#Requires:       perl(Net::CIDR)
+%else
 Requires:       perl(Cache::Memcached)
 Requires:       perl(Carp::Always)
+Requires:       perl(Net::CIDR)
+%endif
 Requires:       perl(Crypt::DES)
 Requires:       perl(Digest::HMAC)
 Requires:       perl(Digest::SHA1)
-Requires:       perl(Net::CIDR)
 Requires:       perl(Net::Server)
 Requires:       perl(Net::Server::Fork)
 Requires:       perl(Net::SNMP)
@@ -126,15 +134,14 @@ Requires:       perl(Cache::Cache)
 
 # Munin node java monitor requires
 #Requires:       java-jmx # rhel<5
-# java buildrequires on fedora < 17 and rhel 5,6
-%if 0%{?rhel} > 6 || 0%{?fedora} > 16
-BuildRequires:  java-1.7.0-devel
-%else
-# java buildrequires on fedora 17 and higher
-BuildRequires:  java-1.6.0-devel
-%endif
-BuildRequires:  mx4j
+BuildRequires:  java-devel
 BuildRequires:  jpackage-utils
+%if 0%{?rhel} > 6
+# RHEL7 does not have mx4j
+#BuildRequires:  mx4j
+%else
+BuildRequires:  mx4j
+%endif
 
 # CGI requires
 # RHEL6+ Requires:       dejavu-sans-mono-fonts
@@ -314,6 +321,11 @@ Munin plugins that require Net::IP.  This is only dhcpd3 and ntp currently.
 install -c %{SOURCE12} ./plugins/node.d.linux/cpuspeed.in
 %endif
 
+%if 0%{?rhel} > 6
+# This one relies on Cache::Memcached, which is not shipped with el7
+rm -f plugins/node.d/memcached_.in
+%endif
+
 %patch4 -p0
 %patch5 -p0
 #% patch7 -p1
@@ -327,7 +339,11 @@ sed -i -e 's,^PERLSITELIB := \(.*\),PERLSITELIB := %{perl_vendorlib},;' Makefile
 
 
 %build
+%if 0%{?rhel} > 6
+export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$CLASSPATH
+%else
 export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$(build-classpath mx4j):$CLASSPATH
+%endif
 make    CONFIG=Makefile.config-dist
 
 # Convert to utf-8
@@ -347,7 +363,11 @@ done
 rm -rf ${buildroot}
 
 ## Node
+%if 0%{?rhel} > 6
+export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$CLASSPATH
+%else
 export  CLASSPATH=plugins/javalib/org/munin/plugin/jmx:$(build-classpath mx4j):$CLASSPATH
+%endif
 make    CONFIG=Makefile.config-dist \
         DESTDIR=%{buildroot} \
 %if 0%{?rhel} > 7 || 0%{?fedora} > 19
@@ -394,7 +414,7 @@ install -m 0644 %{SOURCE14} %{buildroot}/lib/systemd/system/munin-asyncd.service
 install -m 0644 %{SOURCE15} %{buildroot}/lib/systemd/system/munin-fcgi-html.service
 install -m 0644 %{SOURCE16} %{buildroot}/lib/systemd/system/munin-fcgi-graph.service
 %endif
-%if 0%{?fedora} > 16
+%if 0%{?rhel} > 6 || 0%{?fedora} > 16
 install -m 0644 %{SOURCE11} %{buildroot}/lib/systemd/system/munin-node.service
 install -m 0644 %{SOURCE14} %{buildroot}/lib/systemd/system/munin-asyncd.service
 install -m 0644 %{SOURCE15} %{buildroot}/lib/systemd/system/munin-fcgi-html.service
@@ -409,7 +429,7 @@ install -m 0644 %{SOURCE9} %{buildroot}%{_sysconfdir}/tmpfiles.d/%{name}.conf
 %endif
 
 # Fedora 15 and rhel use sysvinit / upstart
-%if 0%{?rhel} > 4 || 0%{?fedora} == 15
+%if (0%{?rhel} > 4 && 0%{?rhel} <= 6) || 0%{?fedora} == 15
 mkdir -p %{buildroot}/etc/rc.d/init.d
 cat %{SOURCE18} | sed -e 's/2345/\-/' > %{buildroot}/etc/rc.d/init.d/munin-node
 chmod 755 %{buildroot}/etc/rc.d/init.d/munin-node
@@ -799,6 +819,10 @@ exit 0
 
 
 %changelog
+* Sun Sep 07 2014 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.21-5
+- BZ# 1114857 - munin-2.0.21-2.fc21 FTBFS: No Package found for java-1.7.0-devel
+- re-merge earlier commit for epel7
+
 * Fri Aug 29 2014 Jitka Plesnikova <jplesnik@redhat.com> - 2.0.21-4
 - Perl 5.20 rebuild
 
@@ -807,6 +831,13 @@ exit 0
 
 * Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.0.21-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
+
+* Mon Apr 28 2014 Lubomir Rintel <lkundrak@v3.sk> - 2.0.21-1.1
+- mx4j is not a build time dependency
+- RHEL 7 Actually uses systemd too
+- No Net::CIDR in el7
+- No Cache::Memcached in el7
+- Carp::Always is not actually required
 
 * Fri Apr 25 2014 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.21-1
 - Upstream released 2.0.21
