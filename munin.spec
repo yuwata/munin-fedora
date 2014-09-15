@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.21
-Release:        5%{?dist}
+Release:        6%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -819,6 +819,9 @@ exit 0
 
 
 %changelog
+* Mon Sep 15 2014 Petr Pisar <ppisar@redhat.com> - 2.0.21-6
+- Build against perl 5.20
+
 * Sun Sep 07 2014 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.21-5
 - BZ# 1114857 - munin-2.0.21-2.fc21 FTBFS: No Package found for java-1.7.0-devel
 - re-merge earlier commit for epel7
