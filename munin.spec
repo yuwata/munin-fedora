@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.21
-Release:        5%{?dist}
+Release:        6%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -31,6 +31,7 @@ Source20:       Makefile.config-dist
 Source21:       nginx_munin.conf
 Source22:       munin-fcgi-html.rc
 Source23:       munin-fcgi-graph.rc
+Source24:       munin-2.0.9-amavis-config
 
 #Patch1:         munin-1.4.6-restorecon.patch
 #Patch2:         munin-1.4.2-fontfix.patch
@@ -474,6 +475,9 @@ install -m 0644 %{SOURCE6} %{buildroot}/etc/munin/plugin-conf.d/postfix
 # install df config to exclude fses we shouldn't try and monitor
 install -m 0644 %{SOURCE7} %{buildroot}/etc/munin/plugin-conf.d/df
 
+# Install amavis config file to set MUNIN_MKTEMP env
+install -m 0644 %{SOURCE24} %{buildroot}/etc/munin/plugin-conf.d/amavis
+
 # Append for BZ# 746083
 cat - >> %{buildroot}/etc/munin/plugin-conf.d/munin-node <<EOT.node
 [diskstats]
@@ -731,6 +735,7 @@ exit 0
 %dir %attr(0755,root,root) /var/log/munin-node
 %config(noreplace) %{_sysconfdir}/logrotate.d/munin-node
 %config(noreplace) %{_sysconfdir}/munin/munin-node.conf
+%config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/amavis
 %config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/df
 %config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/fw_
 %config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/hddtemp_smartctl
@@ -819,6 +824,9 @@ exit 0
 
 
 %changelog
+* Sun Sep 14 2014 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.21-6
+- Add amavis plugin config defaults
+
 * Sun Sep 07 2014 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.21-5
 - BZ# 1114857 - munin-2.0.21-2.fc21 FTBFS: No Package found for java-1.7.0-devel
 - re-merge earlier commit for epel7
