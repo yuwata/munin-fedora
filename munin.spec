@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.21
-Release:        6%{?dist}
+Release:        7%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -824,6 +824,9 @@ exit 0
 
 
 %changelog
+* Mon Sep 15 2014 Petr Pisar <ppisar@redhat.com> - 2.0.21-6
+- Build against perl 5.20
+
 * Sun Sep 14 2014 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.21-6
 - Add amavis plugin config defaults
 
