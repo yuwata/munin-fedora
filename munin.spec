@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.21
-Release:        7%{?dist}
+Release:        8%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -824,6 +824,9 @@ exit 0
 
 
 %changelog
+* Tue Oct 07 2014 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.21-8
+- BZ# 1149948 - munin-async pid file in /var/run rather than /var/run/munin
+
 * Mon Sep 15 2014 Petr Pisar <ppisar@redhat.com> - 2.0.21-6
 - Build against perl 5.20
 
