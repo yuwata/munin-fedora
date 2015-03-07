@@ -1,0 +1,29 @@
+--- ./plugins/node.d/ntp_.in.orig	2014-03-26 18:45:21.374305323 -0500
++++ ./plugins/node.d/ntp_.in	2015-03-06 22:31:31.154285245 -0600
+@@ -77,7 +77,7 @@
+                 if ($line =~ m/^\s*\d+/) {
+                         my (undef, undef, $assid, undef, undef, undef, undef, undef, undef, undef) = split(/\s+/, $line);
+                         chomp(my $peerinfo = `ntpq -n -c "readvar $assid srcadr"`);
+-                        $peerinfo =~ s/\R/ /g;
++                        $peerinfo =~ s/\n/ /g;
+                         my ($peer_addr) = ($peerinfo =~ m/srcadr=(.*)/);
+                         print $peer_addr, "\n" unless $peer_addr eq "0.0.0.0";
+                 }
+@@ -114,7 +114,7 @@
+         if ($line =~ m/^\s*\d+/) {
+                 my (undef, undef, $assid, undef, undef, undef, undef, undef, undef, undef) = split(/\s+/, $line);
+                 chomp(my $peerinfo = `ntpq -n -c "readvar $assid srcadr,delay,offset,jitter"`);
+-                $peerinfo =~ s/\R/ /g;
++                $peerinfo =~ s/\n/ /g;
+                 ($srcadr) = ($peerinfo =~ m/srcadr=([^, ]+)/);
+                 ($delay) = ($peerinfo =~ m/delay=([^, ]+)/);
+                 ($offset) = ($peerinfo =~ m/offset=([^, ]+)/);
+@@ -152,7 +152,7 @@
+                 if ($line =~ m/^\s*\d+/) {
+                         my (undef, undef, $assid, undef, undef, undef, undef, undef, undef, undef) = split(/\s+/, $line);
+                         chomp(my $peerinfo = `ntpq -n -c "readvar $assid srcadr,delay,offset,jitter"`);
+-                        $peerinfo =~ s/\R/ /g;
++                        $peerinfo =~ s/\n/ /g;
+                         ($srcadr) = ($peerinfo =~ m/srcadr=([^, ]+)/);
+                         ($delay) = ($peerinfo =~ m/delay=([^, ]+)/);
+                         ($offset) = ($peerinfo =~ m/offset=([^, ]+)/);

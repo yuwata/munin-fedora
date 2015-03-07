@@ -1,0 +1,45 @@
+commit 997d82d30040dc9749db46823a933555e586e645
+Author: Daniel Black <daniel.black@openquery.com>
+Date:   Thu Jan 30 11:34:54 2014 +1100
+
+    Break mysql innodb data on full sections
+    
+    Patch from Jan Mara
+    https://github.com/jmara/ubuntu-munin-mysql/commit/77ae2b2d8bc1233e0f0b0e6346d66b955441ba14
+
+diff --git a/plugins/node.d/mysql_.in b/plugins/node.d/mysql_.in
+index 3376036..fb70e24 100644
+--- a/plugins/node.d/mysql_.in
++++ b/plugins/node.d/mysql_.in
+@@ -1070,7 +1070,7 @@ sub parse_innodb_status {
+ 
+     # Add a dummy section to the end in case the innodb status output
+     # has been truncated (Happens for status > 64K characters)
+-    $_ .= "\n----------\nDUMMY\n";
++    $_ .= "\n----------\nDUMMY\n----------\n";
+ 
+     my %section_map = (
+ 
+@@ -1114,7 +1114,12 @@ sub parse_innodb_status {
+ my $innodb_bigint_rx = qr{([[a-fA-F\d]+)(?: (\d+))?};
+ 
+ 
+-sub match_dashes { return m/\G-+\n(?!-)/gc; }
++sub match_new_section {
++   return m/\G
++            -+\n                 # ---------------------------
++            (?= [A-Z\/ ]+\n      # SECTION NAME
++                [=-]+\n)/gcx;    # --------------------------- ('=' on end of output)
++}
+ 
+ 
+ sub skip_line    { return m/\G.*\n/gc; }
+@@ -1133,7 +1138,7 @@ sub parse_section {
+ 
+     #warn substr($_, pos(), 10);
+     for (;;) {
+-	return if match_dashes();
++	return if match_new_section;
+ 	next if $parser->();
+ 	skip_line();
+     }

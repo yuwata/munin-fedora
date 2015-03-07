@@ -1,0 +1,50 @@
+commit e5f12ef57c75d37aa2e3444cc448598f3c32b0ea
+Author: Daniel Black <daniel.black@openquery.com>
+Date:   Tue Jun 17 11:45:13 2014 +1000
+
+    Mariadb-10 show innodb status compatiblity
+    
+    show innodb status on mariadb-10 if in a transaction will show
+    
+    --------------
+    ROW OPERATIONS
+    --------------
+    0 queries inside InnoDB, 0 queries in queue
+    1 read views open inside InnoDB
+    1 RW transactions active inside InnoDB
+    0 RO transactions active inside InnoDB
+    1 out of 1000 descriptors used
+    ---OLDEST VIEW---
+    Normal read view
+    Read view low limit trx n:o 726056894
+    Read view up limit trx id 726056894
+    Read view low limit trx id 726056894
+    Read view individually stored trx ids:
+    -----------------
+    Main thread process no. 13048, id 140163878000384, state: sleeping
+    Number of rows inserted 0, updated 0, deleted 0, read 1666121005
+    0.00 inserts/s, 0.00 updates/s, 0.00 deletes/s, 17566.53 reads/s
+    ------------
+    
+    In this patch we just skip sections like "Main thread process.." that we
+    don't know about.
+
+diff --git a/plugins/node.d/mysql_.in b/plugins/node.d/mysql_.in
+index 9b6914b..1d83115 100644
+--- a/plugins/node.d/mysql_.in
++++ b/plugins/node.d/mysql_.in
+@@ -1102,8 +1102,12 @@ sub parse_innodb_status {
+ 	    last;
+ 	}
+ 
+-	die "Unknown section: $1" unless exists $section_map{$sec};
+-	die "Parse error. Expected a section separator" unless m/\G-+\n/gc;
++	if (exists $section_map{$sec}) {
++      $section_map{$sec}->();
++	} else {
++      #warn "Unknown section: $1";
++      skip();
++	}
+ 
+ 	$section_map{$sec}->();
+     }
