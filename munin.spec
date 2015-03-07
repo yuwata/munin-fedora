@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.25
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -43,6 +43,10 @@ Patch5:         acpi-2.0.5.patch
 Patch9:         munin-2.0.8-cgitmp.patch
 # BZ# 877116 Patch using '&' in the URLs instead of '&amp;' in HTMLConfig
 Patch10:        munin-2.0.9_HTMLConfig.pm.patch
+Patch11:        https://github.com/munin-monitoring/munin/pull/274.patch
+Patch12:        bz1049262-ntp_.patch
+Patch13:        mariadb-show-status.patch
+Patch14:        mariadb-innodb.patch
 
 BuildArch:      noarch
 
@@ -332,6 +336,10 @@ rm -f plugins/node.d/memcached_.in
 #% patch7 -p1
 %patch9 -p1
 %patch10 -p1
+%patch11 -p1
+%patch12 -p1
+%patch13 -p1
+%patch14 -p1
 install -c %{SOURCE13} ./resources/
 
 # Create Makefile.config-dist
@@ -824,6 +832,12 @@ exit 0
 
 
 %changelog
+* Sat Mar 07 2015 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-2
+- Merge 2.1 paches back to 2.0
+- BZ# 1149949 - munin-async init script to override defaults (PR-274 backport)
+- BZ# 1049262 - munin ntp_ plugin uses perl features from perl 5.10.0 but can only use perl 5.8.8
+- BZ# 1140015 - Munin mysql plugin fails to parse MariaDB status
+
 * Tue Nov 25 2014 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-1
 - Upstream released 2.0.25
 
