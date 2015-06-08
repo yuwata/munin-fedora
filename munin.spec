@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.25
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -832,6 +832,9 @@ exit 0
 
 
 %changelog
+* Mon Jun 08 2015 Jitka Plesnikova <jplesnik@redhat.com> - 2.0.25-3
+- Perl 5.22 rebuild
+
 * Sat Mar 07 2015 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-2
 - Merge 2.1 paches back to 2.0
 - BZ# 1149949 - munin-async init script to override defaults (PR-274 backport)
