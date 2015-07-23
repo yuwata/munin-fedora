@@ -839,7 +839,7 @@ exit 0
 - Perl 5.22 rebuild
 
 * Sat Mar 07 2015 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-2
-- Merge 2.1 paches back to 2.0
+- Merge 2.1 patches back to 2.0
 - BZ# 1149949 - munin-async init script to override defaults (PR-274 backport)
 - BZ# 1049262 - munin ntp_ plugin uses perl features from perl 5.10.0 but can only use perl 5.8.8
 - BZ# 1140015 - Munin mysql plugin fails to parse MariaDB status
