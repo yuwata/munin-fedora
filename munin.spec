@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.25
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -47,6 +47,7 @@ Patch11:        https://github.com/munin-monitoring/munin/pull/274.patch
 Patch12:        bz1049262-ntp_.patch
 Patch13:        mariadb-show-status.patch
 Patch14:        mariadb-innodb.patch
+Patch15:        munin-2.0.26-406c67e.diff
 
 BuildArch:      noarch
 
@@ -228,6 +229,7 @@ Group:          System Environment/Daemons
 Summary:        Network-wide graphing framework (common files)
 BuildArch:      noarch
 Requires:       perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+Requires(pre):  shadow-utils
 
 %description common
 Munin is a highly flexible and powerful solution used to create graphs
@@ -269,6 +271,7 @@ Summary:        Network-wide graphing framework (cgi files for apache)
 BuildArch:      noarch
 Requires:       %{name}-common = %{version}
 Requires:       mod_fcgid
+Requires(pre):  shadow-utils
 
 %description cgi
 Munin package uses cron by default.  This package contains the CGI files that
@@ -832,6 +835,10 @@ exit 0
 
 
 %changelog
+* Wed Sep 16 2015 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-5
+- BZ# 1262751 - munin-common should be requires(pre) shadow-utils package
+- munin-2.0.26-406c67e
+
 * Wed Jun 17 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.0.25-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
 
