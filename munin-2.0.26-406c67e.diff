@@ -1,0 +1,305 @@
+diff --git a/master/lib/Munin/Master/LimitsOld.pm b/master/lib/Munin/Master/LimitsOld.pm
+index 3303125..d0181c1 100644
+--- a/master/lib/Munin/Master/LimitsOld.pm
++++ b/master/lib/Munin/Master/LimitsOld.pm
+@@ -315,6 +315,7 @@ sub process_service {
+     $hash->{'group'} = get_full_group_path($hparentobj);
+     $hash->{'worst'} = "ok";
+     $hash->{'worstid'} = 0 unless defined $hash->{'worstid'};
++    $hash->{'recovered'} = {};
+ 
+     my $state_file = sprintf ('%s/state-%s-%s.storable', $config->{dbdir}, $hash->{group}, $host);
+     DEBUG "[DEBUG] state_file: $state_file";
+@@ -325,14 +326,14 @@ sub process_service {
+         my $fname   = munin_get_node_name($field);
+         my $fpath   = munin_get_node_loc($field);
+         my $onfield = munin_get_node($oldnotes, $fpath);
+-	my $oldstate= '';
++        my $oldstate = 'ok';
+ 
+ 	# Test directly here as get_limits is in truth recursive and
+ 	# that fools us when processing multigraphs.
+ 	next if (!defined($field->{warning}) and !defined($field->{critical}));
+ 
+ 	# get the old state if there is one, or leave it empty.
+-	if ( defined($onfield) or
++	if ( defined($onfield) and
+ 	     defined($onfield->{"state"}) ) {
+ 	    $oldstate = $onfield->{"state"};
+ 	}
+@@ -525,6 +526,7 @@ sub process_service {
+ 
+ 	    if ($oldstate ne 'ok') {
+ 		$hash->{'state_changed'} = 1;
++		$hash->{'recovered'}{$fname} = 1;
+ 	    }
+         }
+     }
+@@ -616,10 +618,11 @@ sub generate_service_message {
+     if ( defined($children) ) {
+ 	foreach my $field (@$children) {
+ 	    if (defined $field->{"state"}) {
+-		push @{$stats{$field->{"state"}}}, munin_get_node_name($field);
+-		if ($field->{"state"} eq "ok") {
+-		    push @{$stats{"foks"}}, munin_get_node_name($field);
+-		}
++                my $fname = munin_get_node_name($field);
++                push @{$stats{$field->{'state'}}}, $fname;
++                if ($field->{'state'} eq 'ok' and defined $hash->{'recovered'}{$fname}) {
++                    push @{$stats{'foks'}}, $fname;
++                }
+ 	    }
+ 	}
+     }
+diff --git a/plugins/node.d.linux/apt_all.in b/plugins/node.d.linux/apt_all.in
+index 092f011..03fd944 100644
+--- a/plugins/node.d.linux/apt_all.in
++++ b/plugins/node.d.linux/apt_all.in
+@@ -14,7 +14,14 @@ graphs.
+ 
+ =head1 CONFIGURATION
+ 
+-No configuration needed
++You can add some extra options to the apt call, in order to override
++your /etc/apt.conf defaults.
++
++[apt_all]
++env.options -o Debug::pkgDepCache::AutoInstall=false -o APT::Get::Show-Versions=false
++
++Note that apt is called with no extra options by default, so it fully honors
++your /etc/apt.conf defaults.
+ 
+ =head1 USAGE
+ 
+@@ -79,7 +86,8 @@ sub update_state() {
+ 	open(STATE, ">$statefile")
+ 		or die("Couldn't open state file $statefile for writing.");
+ 	foreach my $release (@releases) {
+-	    my $apt="apt-get -u dist-upgrade --print-uris --yes -t $release |";
++	    my $options = $ENV{options} || "";
++	    my $apt="apt-get $options -u dist-upgrade --print-uris --yes -t $release |";
+ 	    open (APT, "$apt") or exit 22;
+ 
+ 	    my @pending = ();
+diff --git a/plugins/node.d.linux/diskstats.in b/plugins/node.d.linux/diskstats.in
+index 301d619..ef1e984 100644
+--- a/plugins/node.d.linux/diskstats.in
++++ b/plugins/node.d.linux/diskstats.in
+@@ -34,6 +34,9 @@ do_autoconf() if ( $ARGV[0] && $ARGV[0] eq 'autoconf' );
+ # Fetch current counter values
+ my %cur_diskstats = fetch_device_counters();
+ 
++# Fetch uptime to detect system reboot
++my ($uptime) = fetch_uptime();
++
+ # Weed out unwanted devices
+ filter_device_list( \%cur_diskstats );
+ 
+@@ -67,6 +70,20 @@ exit 0;
+ # SUBS #
+ ########
+ 
++# fetch_uptime
++#
++# read /proc/uptime and return it
++
++sub fetch_uptime {
++    open my $FH, "<", '/proc/uptime' or return undef;
++    my $line = <$FH>;
++    chomp($line);
++    my @row = split(/\s+/, $line);
++    close $FH;
++
++    return @row;
++}
++
+ # generate_multigraph_data
+ #
+ # Creates the data which is needed by munin's fetch command
+@@ -181,6 +198,17 @@ sub calculate_values {
+ 
+     my $interval = time() - $prev_time;
+ 
++    if ($uptime < $interval) {
++        # system has rebooted
++
++        $interval = $uptime;
++
++        # all values will be zero at system reboot
++        for my $entry ( keys %$prev_stats ) {
++            $prev_stats->{$entry} = 0;
++        }
++    }
++
+     my $read_ios  = subtract_wrapping_numbers($cur_stats->{'rd_ios'}, $prev_stats->{'rd_ios'});
+     my $write_ios = subtract_wrapping_numbers($cur_stats->{'wr_ios'}, $prev_stats->{'wr_ios'});
+ 
+diff --git a/plugins/node.d/ejabberd_.in b/plugins/node.d/ejabberd_.in
+index a489a4b..281c880 100644
+--- a/plugins/node.d/ejabberd_.in
++++ b/plugins/node.d/ejabberd_.in
+@@ -179,7 +179,7 @@ if [ "$1" = "config" ]; then
+     echo 'graph_info This graph shows a statistic of ejabberd'
+ 
+     if [ "$MODE" = "connections" ]; then
+-        echo 'graph_title Server-to-server conections'
++        echo 'graph_title Server-to-server connections'
+         echo 'graph_vlabel s2s'
+         echo 's2s_connections_out.label incoming s2s connections'
+         echo 's2s_connections_out.info Number of outgoing server to server connections'
+diff --git a/plugins/node.d/http_loadtime.in b/plugins/node.d/http_loadtime.in
+index a87c3db..49878ce 100644
+--- a/plugins/node.d/http_loadtime.in
++++ b/plugins/node.d/http_loadtime.in
+@@ -5,13 +5,20 @@
+ 
+ =head1 NAME
+ 
+-http_loadtime - Plugin to graph HTTP response time of a specific page
++http_loadtime - Plugin to graph the HTTP response times of specific pages
+ 
+ =head1 CONFIGURATION
+ 
+ The following environment variables are used by this plugin
+ 
+- target - URL to fetch (default: "http://localhost/")
++ target - comma separated URL(s) to fetch (default: "http://localhost/")
++ example:
++   [http_loadtime]
++   env.target http://localhost.de,http://localhost.de/some-site.html
++   env.requisites true
++
++ Do not enable the download of page requisites (env.requisites) for https
++ sites since wget needs incredible long to perform this on big sites...
+ 
+ =head1 AUTHOR
+ 
+@@ -29,8 +36,17 @@ GPLv2
+ 
+ =cut
+ 
++. $MUNIN_LIBDIR/plugins/plugin.sh
++
+ target=${target:-"http://localhost/"}
+-wget_opt="--user-agent munin/http_loadtime --no-cache -q --delete-after"
++requisites=${requisites:-"false"}
++
++urls=`echo $target | tr "," "\n"`
++wget_opt="--user-agent munin/http_loadtime --no-cache -q"
++if [ "$requisites" == "true" ]; then
++  wget_opt="$wget_opt --page-requisites"
++fi
++
+ time_bin=`which time`
+ 
+ if [ "$1" = "autoconf" ]; then
+@@ -40,16 +56,22 @@ if [ "$1" = "autoconf" ]; then
+     command -v wget      2>&1 >/dev/null || result=1
+     if [ "$result" != "yes" ]; then
+ 	echo "no (programs time, wget and tr required)"
+-	    exit 0
++	exit 0
+     fi
+-    if ! $wget_bin -q -O /dev/null $target; then
+-
+-    # check if url responds
+-    #
+-    wget --spider $target $wget_opt
+-    if [ "$?" != "0" ]; then
+-        echo "no (Cannot run wget against \"$target\")"
+-        exit 0
++
++    # if $target contains more than one url
++    if ! wget -q -O /dev/null $target; then
++
++        # check if urls respond
++        #
++        for uri in $urls
++        do
++            wget --spider $uri $wget_opt
++            if [ "$?" != "0" ]; then
++                echo "no (Cannot run wget against \"$uri\")"
++                exit 0
++            fi
++        done
+     fi
+     echo yes
+     exit 0
+@@ -60,9 +82,15 @@ if [ "$1" = "config" ]; then
+     echo "graph_args --base 1000 -l 0"
+     echo "graph_vlabel Load time in seconds"
+     echo "graph_category network"
+-    echo "graph_info This graph shows load time in seconds of $target"
+-    echo "loadtime.label loadtime"
+-    echo "loadtime.info Load time"
++    echo "graph_info This graph shows the load time in seconds"
++    for uri in $urls
++    do
++        uri_short=`echo ${uri:0:30}`
++        if [ "$uri_short" != "$uri" ]; then uri_short=$uri_short"..."; fi
++        esc_uri="$(clean_fieldname "$uri")"
++        echo $esc_uri".label $uri_short"
++        echo $esc_uri".info page load time"
++    done
+     exit 0
+ fi
+ 
+@@ -71,7 +99,13 @@ TEMPO_DIR=$(mktemp -dt munin_http_loadtime.XXXXXX) || exit 1
+ trap "rm -rf $TEMPO_DIR" EXIT
+ 
+ cd $TEMPO_DIR || exit 1
+-loadtime=`$time_bin --quiet -f "%e" wget $wget_opt $target 2>&1`
+-cd -
+ 
+-echo "loadtime.value $loadtime"
++for uri in $urls
++do
++    loadtime=`$time_bin -f "%e" wget $wget_opt --header='Accept-Encoding: gzip,deflate' $uri 2>&1`
++
++    esc_uri="$(clean_fieldname "$uri")"
++    echo $esc_uri".value $loadtime"
++done
++
++exit 0
+diff --git a/plugins/node.d/multips.in b/plugins/node.d/multips.in
+index 6ce8588..157cb28 100644
+--- a/plugins/node.d/multips.in
++++ b/plugins/node.d/multips.in
+@@ -56,6 +56,11 @@ GPLv2
+ . $MUNIN_LIBDIR/plugins/plugin.sh
+ 
+ if [ "$1" = "autoconf" ]; then
++	if [ -z "$names" ]; then
++		echo "no (Configuration required)"
++		exit 0
++	fi
++
+ 	echo yes
+ 	exit 0
+ fi
+diff --git a/plugins/node.d/snmp__if_.in b/plugins/node.d/snmp__if_.in
+index 19baa8d..17d8c53 100644
+--- a/plugins/node.d/snmp__if_.in
++++ b/plugins/node.d/snmp__if_.in
+@@ -219,7 +219,7 @@ if ($ARGV[0] and $ARGV[0] eq "config") {
+     print "recv.cdef recv,8,*\n";
+     print "recv.max $speed\n";
+     print "recv.min 0\n";
+-    print "recv.warning ", (-$warn), "\n" if defined $warn;
++    print "recv.warning ", ($warn), "\n" if defined $warn;
+     print "send.label bps\n";
+     print "send.type DERIVE\n";
+     print "send.negative recv\n";
+diff --git a/plugins/node.d/snmp__if_err_.in b/plugins/node.d/snmp__if_err_.in
+index f4f4acf..9507e6a 100644
+--- a/plugins/node.d/snmp__if_err_.in
++++ b/plugins/node.d/snmp__if_err_.in
+@@ -143,7 +143,7 @@ if ($ARGV[0] and $ARGV[0] eq "config") {
+     print "recv.type DERIVE\n";
+     print "recv.graph no\n";
+     print "recv.min 0\n";
+-    print "recv.warning ", (-$warn), "\n" if defined $warn;
++    print "recv.warning ", ($warn), "\n" if defined $warn;
+     print "send.label errors\n";
+     print "send.type DERIVE\n";
+     print "send.negative recv\n";
