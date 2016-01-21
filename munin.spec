@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.25
-Release:        5%{?dist}
+Release:        6%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -32,6 +32,7 @@ Source21:       nginx_munin.conf
 Source22:       munin-fcgi-html.rc
 Source23:       munin-fcgi-graph.rc
 Source24:       munin-2.0.9-amavis-config
+Source25:       munin-node.xml
 
 #Patch1:         munin-1.4.6-restorecon.patch
 #Patch2:         munin-1.4.2-fontfix.patch
@@ -175,15 +176,21 @@ Group:          System Environment/Daemons
 Summary:        Network-wide graphing framework (node)
 BuildArch:      noarch
 Requires:       %{name}-common = %{version}
-Requires:       perl-Net-Server
+Requires:       perl(LWP::UserAgent)
 Requires:       perl-Net-CIDR
+Requires:       perl-Net-Server
 Requires:       procps >= 2.0.7
 Requires:       sysstat, /usr/bin/which, hdparm
-Requires:       perl(LWP::UserAgent)
 Requires(pre):  shadow-utils
 Requires(post): /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
+
+# FirewallD
+%if 0%{?rhel} > 6 || 0%{?fedora} > 19
+Requires: firewalld-filesystem
+Requires(post): firewalld-filesystem
+%endif
 
 %description node
 Munin is a highly flexible and powerful solution used to create graphs
@@ -547,6 +554,8 @@ sed -i -e '
   s,owner_ok /var/lib/munin/plugin-state .*,owner_ok /var/lib/munin/plugin-state root,;
   ' %{buildroot}/usr/bin/munin-check
 
+mkdir -p %{buildroot}/%{_prefix}/lib/firewalld/services/
+cp %{SOURCE25} %{buildroot}/%{_prefix}/lib/firewalld/services/munin-node.xml
 
 %clean
 rm -rf %{buildroot}
@@ -587,6 +596,7 @@ exit 0
       /bin/systemctl daemon-reload >/dev/null 2>&1 || :
     fi
   %endif
+  %firewalld_reload
 %else
   # sysvinit only in f15 and older and epel
   /sbin/chkconfig --add munin-node
@@ -758,6 +768,9 @@ exit 0
 %else
 %{_sysconfdir}/rc.d/init.d/munin-node
 %endif
+%if 0%{?rhel} > 6 || 0%{?fedora} > 19
+%{_prefix}/lib/firewalld/services/munin-node.xml
+%endif
 %attr(0755,root,root) %{_sbindir}/munin-run
 %attr(0755,root,root) %{_sbindir}/munin-node
 %attr(0755,root,root) %{_sbindir}/munin-node-configure
@@ -835,6 +848,10 @@ exit 0
 
 
 %changelog
+* Thu Jan 21 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-6
+- BZ# 1300379 - Please include firewalld service file for munin-node in RPM
+  package
+
 * Wed Sep 16 2015 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-5
 - BZ# 1262751 - munin-common should be requires(pre) shadow-utils package
 - munin-2.0.26-406c67e
