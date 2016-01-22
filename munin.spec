@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.25
-Release:        6%{?dist}
+Release:        7%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -185,12 +185,6 @@ Requires(pre):  shadow-utils
 Requires(post): /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
-
-# FirewallD
-%if 0%{?rhel} > 6 || 0%{?fedora} > 19
-Requires: firewalld-filesystem
-Requires(post): firewalld-filesystem
-%endif
 
 %description node
 Munin is a highly flexible and powerful solution used to create graphs
@@ -596,7 +590,6 @@ exit 0
       /bin/systemctl daemon-reload >/dev/null 2>&1 || :
     fi
   %endif
-  %firewalld_reload
 %else
   # sysvinit only in f15 and older and epel
   /sbin/chkconfig --add munin-node
@@ -848,6 +841,9 @@ exit 0
 
 
 %changelog
+* Fri Jan 22 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-7
+- Remove firewalld Require and associated script. EPEL7 does not have them.
+
 * Thu Jan 21 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-6
 - BZ# 1300379 - Please include firewalld service file for munin-node in RPM
   package
