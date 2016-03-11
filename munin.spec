@@ -554,8 +554,10 @@ sed -i -e '
   s,owner_ok /var/lib/munin/plugin-state .*,owner_ok /var/lib/munin/plugin-state root,;
   ' %{buildroot}/usr/bin/munin-check
 
+%if 0%{?rhel} > 6 || 0%{?fedora} > 19
 mkdir -p %{buildroot}/%{_prefix}/lib/firewalld/services/
 cp %{SOURCE25} %{buildroot}/%{_prefix}/lib/firewalld/services/munin-node.xml
+%endif
 
 %clean
 rm -rf %{buildroot}
