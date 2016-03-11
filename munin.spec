@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.25
-Release:        9%{?dist}
+Release:        10%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -849,6 +849,9 @@ exit 0
 
 
 %changelog
+* Fri Mar 11 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-10
+- EL5/6 do not need to install firewalld files
+
 * Fri Mar 11 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-9
 - BZ# 1315990 - Please remove unnecessary requirements for munin-node
 - BZ# 1315951 - move /etc/tmpfiles.d/munin.conf to /usr/lib/tmpfiles.d
