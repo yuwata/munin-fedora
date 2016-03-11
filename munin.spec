@@ -33,6 +33,7 @@ Source22:       munin-fcgi-html.rc
 Source23:       munin-fcgi-graph.rc
 Source24:       munin-2.0.9-amavis-config
 Source25:       munin-node.xml
+Source26:       munin-2.0.25-postgresql-config
 
 #Patch1:         munin-1.4.6-restorecon.patch
 #Patch2:         munin-1.4.2-fontfix.patch
@@ -496,6 +497,9 @@ install -m 0644 %{SOURCE7} %{buildroot}/etc/munin/plugin-conf.d/df
 # Install amavis config file to set MUNIN_MKTEMP env
 install -m 0644 %{SOURCE24} %{buildroot}/etc/munin/plugin-conf.d/amavis
 
+# Install config file for postgres
+install -m 0644 %{SOURCE26} %{buildroot}/etc/munin/plugin-conf.d/postgres
+
 # Append for BZ# 746083
 cat - >> %{buildroot}/etc/munin/plugin-conf.d/munin-node <<EOT.node
 [diskstats]
@@ -763,6 +767,7 @@ exit 0
 %config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/hddtemp_smartctl
 %config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/munin-node
 %config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/postfix
+%config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/postgres
 %config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/sendmail
 %if 0%{?rhel} > 6 || 0%{?fedora} > 15
 /lib/systemd/system/munin-node.service
@@ -851,6 +856,7 @@ exit 0
 %changelog
 * Fri Mar 11 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-10
 - EL5/6 do not need to install firewalld files
+- BZ# 1315810 - postgresql plugin default configuration (contrib)
 
 * Fri Mar 11 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-9
 - BZ# 1315990 - Please remove unnecessary requirements for munin-node
