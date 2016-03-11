@@ -1,0 +1,6 @@
+[postgres_*]
+
+# for more detail run "man Munin::Plugin::Pgsql"
+user postgres
+env.PGUSER postgres
+env.PGPORT 5432
