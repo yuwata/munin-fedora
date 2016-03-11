@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.25
-Release:        8%{?dist}
+Release:        9%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -182,8 +182,13 @@ Requires:       perl-Net-Server
 Requires:       procps >= 2.0.7
 Requires:       sysstat, /usr/bin/which, hdparm
 Requires(pre):  shadow-utils
+%if 0%{?rhel} > 6 || 0%{?fedora} > 15
+Requires(post): systemd
+Requires(preun): systemd
+%else
 Requires(post): /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
+%endif
 Requires(preun): /sbin/service
 
 %description node
@@ -345,6 +350,7 @@ rm -f plugins/node.d/memcached_.in
 %patch13 -p1
 %patch14 -p1
 install -c %{SOURCE13} ./resources/
+%patch15 -p1
 
 # Create Makefile.config-dist
 install -c %{SOURCE20} .
@@ -437,8 +443,8 @@ mkdir -p %{buildroot}/var/lib/munin/spool
 
 # install tmpfiles.d entry
 %if 0%{?rhel} > 6 || 0%{?fedora} > 14
-mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d
-install -m 0644 %{SOURCE9} %{buildroot}%{_sysconfdir}/tmpfiles.d/%{name}.conf
+mkdir -p %{buildroot}%{_tmpfilesdir}
+install -m 0644 %{SOURCE9} %{buildroot}%{_tmpfilesdir}/%{name}.conf
 %endif
 
 # Fedora 15 and rhel use sysvinit / upstart
@@ -795,7 +801,7 @@ exit 0
 %dir %{perl_vendorlib}/Munin
 %dir %attr(-,munin,munin) %{_localstatedir}/run/%{name}/
 %if 0%{?rhel} > 6 || 0%{?fedora} > 14
-%config(noreplace) %{_sysconfdir}/tmpfiles.d/%{name}.conf
+%config(noreplace) %{_tmpfilesdir}/%{name}.conf
 %endif
 %{perl_vendorlib}/Munin/Common
 
@@ -841,6 +847,10 @@ exit 0
 
 
 %changelog
+* Fri Mar 11 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-9
+- BZ# 1315990 - Please remove unnecessary requirements for munin-node
+- BZ# 1315951 - move /etc/tmpfiles.d/munin.conf to /usr/lib/tmpfiles.d
+
 * Thu Feb 04 2016 Fedora Release Engineering <releng@fedoraproject.org> - 2.0.25-8
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
 
