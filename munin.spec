@@ -414,6 +414,18 @@ mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
 sed -e 's/# </</g' %{buildroot}/var/www/html/munin/.htaccess > %{buildroot}%{_sysconfdir}/httpd/conf.d/munin.conf
 echo "ScriptAlias /munin-cgi/munin-cgi-graph /var/www/cgi-bin/munin-cgi-graph" >> \
   %{buildroot}%{_sysconfdir}/httpd/conf.d/munin.conf
+
+# BZ#1312121 - Munin dynamic graph zoom (dynazoom) failing due to Apache config.
+cat - >> %{buildroot}%{_sysconfdir}/httpd/conf.d/munin.conf <<EOT
+<Location /munin-cgi/munin-cgi-graph>
+  AuthUserFile /etc/munin/munin-htpasswd
+  AuthName "Munin"
+  AuthType Basic
+  require valid-user
+</Location>
+
+EOT
+
 rm %{buildroot}/var/www/html/munin/.htaccess
 
 # install cron script
@@ -856,6 +868,9 @@ exit 0
 %changelog
 * Sat Mar 12 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-11
 - Moved /sbin/service to pre-systemd as well
+- BZ# 1312121 - Munin dynamic graph zoom (dynazoom) failing due to Apache config.
+- BZ# 1210767 - At least one file seems corrupt in version 2.0.25-2 and earlier
+- BZ# 1269230 - hddtemp_smartctl fails to parse temperature from output
 
 * Fri Mar 11 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-10
 - EL5/6 do not need to install firewalld files
