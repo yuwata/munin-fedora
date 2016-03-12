@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.25
-Release:        10%{?dist}
+Release:        11%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -189,8 +189,8 @@ Requires(preun): systemd
 %else
 Requires(post): /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
-%endif
 Requires(preun): /sbin/service
+%endif
 
 %description node
 Munin is a highly flexible and powerful solution used to create graphs
@@ -854,6 +854,9 @@ exit 0
 
 
 %changelog
+* Sat Mar 12 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-11
+- Moved /sbin/service to pre-systemd as well
+
 * Fri Mar 11 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-10
 - EL5/6 do not need to install firewalld files
 - BZ# 1315810 - postgresql plugin default configuration (contrib)
