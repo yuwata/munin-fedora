@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.25
-Release:        11%{?dist}
+Release:        12%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -866,6 +866,9 @@ exit 0
 
 
 %changelog
+* Tue May 17 2016 Jitka Plesnikova <jplesnik@redhat.com> - 2.0.25-12
+- Perl 5.24 rebuild
+
 * Sat Mar 12 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.25-11
 - Moved /sbin/service to pre-systemd as well
 - BZ# 1312121 - Munin dynamic graph zoom (dynazoom) failing due to Apache config.
