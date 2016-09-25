@@ -1,14 +1,14 @@
 Name:           munin
-Version:        2.0.25
-Release:        12%{?dist}
+Version:        2.0.26
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
 License:        GPLv2
 URL:            http://munin-monitoring.org/
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Source0:        http://downloads.sourceforge.net/sourceforge/munin/%{name}-%{version}.tar.gz
-Source10:       http://downloads.sourceforge.net/sourceforge/munin/%{name}-%{version}.tar.gz.sha256sum
+Source0:        http://downloads.munin-monitoring.org/munin/stable/%{version}/%{name}-%{version}.tar.gz
+Source10:       http://downloads.munin-monitoring.org/munin/stable/%{version}/%{name}-%{version}.tar.gz.sha256sum
 Source1:        munin-1.2.4-sendmail-config
 Source2:        munin-1.2.5-hddtemp_smartctl-config
 Source3:        munin-node.logrotate
@@ -49,7 +49,6 @@ Patch11:        https://github.com/munin-monitoring/munin/pull/274.patch
 Patch12:        bz1049262-ntp_.patch
 Patch13:        mariadb-show-status.patch
 Patch14:        mariadb-innodb.patch
-Patch15:        munin-2.0.26-406c67e.diff
 
 BuildArch:      noarch
 
@@ -352,7 +351,6 @@ rm -f plugins/node.d/memcached_.in
 %patch13 -p1
 %patch14 -p1
 install -c %{SOURCE13} ./resources/
-%patch15 -p1
 
 # Create Makefile.config-dist
 install -c %{SOURCE20} .
@@ -867,6 +865,9 @@ exit 0
 
 
 %changelog
+* Sun Sep 25 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.26-1
+- Upstream released 2.0.26
+
 * Tue May 17 2016 Jitka Plesnikova <jplesnik@redhat.com> - 2.0.25-12
 - Perl 5.24 rebuild
 
