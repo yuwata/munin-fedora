@@ -869,7 +869,7 @@ exit 0
 
 %changelog
 * Mon Oct 10 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.26-3
-- BZ# 1339122 - Include PR-737 to hddtemp_smartctl fix until 2.0.27 is official
+- BZ# 1339122 - Include PR-737 to fix hddtemp_smartctl until 2.0.27 is official
 - BZ# 1383219 - user nginx is not required for cgi
 
 * Mon Oct 10 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.26-2
