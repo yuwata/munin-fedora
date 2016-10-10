@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.26
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -278,6 +278,7 @@ Summary:        Network-wide graphing framework (cgi files for apache)
 BuildArch:      noarch
 Requires:       %{name}-common = %{version}
 Requires:       mod_fcgid
+Requires:       spawn-fcgi
 Requires(pre):  shadow-utils
 
 %description cgi
@@ -865,6 +866,9 @@ exit 0
 
 
 %changelog
+* Mon Oct 10 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.26-2
+- cgi subpackage requires spawn-fcgi
+
 * Sun Sep 25 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.26-1
 - Upstream released 2.0.26
 
