@@ -19,7 +19,7 @@ restorecon /var/run/munin 2>/dev/null
 case "$1" in
   start)
 	echo -n "Starting Munin fcgi-graph: "
-        /usr/bin/spawn-fcgi -s /var/run/munin/fcgi-graph.sock -U nginx -u munin -g munin /var/www/cgi-bin/munin-cgi-graph -P /var/run/munin/fcgi-graph.pid
+        /usr/bin/spawn-fcgi -s /var/run/munin/fcgi-graph.sock -u munin -g munin /var/www/cgi-bin/munin-cgi-graph -P /var/run/munin/fcgi-graph.pid
 	RETVAL=$?
 	if [ $RETVAL -eq 0 ]
 	then

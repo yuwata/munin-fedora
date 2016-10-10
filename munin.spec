@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.26
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -49,6 +49,7 @@ Patch11:        https://github.com/munin-monitoring/munin/pull/274.patch
 Patch12:        bz1049262-ntp_.patch
 Patch13:        mariadb-show-status.patch
 Patch14:        mariadb-innodb.patch
+Patch15:        https://patch-diff.githubusercontent.com/raw/munin-monitoring/munin/pull/737.patch
 
 BuildArch:      noarch
 
@@ -351,6 +352,7 @@ rm -f plugins/node.d/memcached_.in
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
+%patch15 -p1
 install -c %{SOURCE13} ./resources/
 
 # Create Makefile.config-dist
@@ -866,6 +868,10 @@ exit 0
 
 
 %changelog
+* Mon Oct 10 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.26-3
+- BZ# 1339122 - Include PR-737 to hddtemp_smartctl fix until 2.0.27 is official
+- BZ# 1383219 - user nginx is not required for cgi
+
 * Mon Oct 10 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.26-2
 - cgi subpackage requires spawn-fcgi
 
