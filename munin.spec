@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.26
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -868,6 +868,9 @@ exit 0
 
 
 %changelog
+* Tue Oct 11 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.26-4
+- BZ# 1383219 - user nginx is not required for cgi
+
 * Mon Oct 10 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.26-3
 - BZ# 1339122 - Include PR-737 to fix hddtemp_smartctl until 2.0.27 is official
 - BZ# 1383219 - user nginx is not required for cgi
