@@ -38,7 +38,7 @@ Source26:       munin-2.0.25-postgresql-config
 #Patch1:         munin-1.4.6-restorecon.patch
 #Patch2:         munin-1.4.2-fontfix.patch
 Patch4:         munin-2.0.4-Utils-cluck.patch
-Patch5:         acpi-2.0.5.patch
+#Patch5:         acpi-2.0.5.patch
 #Patch6:         munin-2.0.7-http_loadtime.patch
 #Patch7:         munin-2.0-defect-1213.patch
 #Patch8:         munin-2.0.2-defect-1245-LimitsOld.pm-notify_alias.patch
@@ -49,7 +49,7 @@ Patch11:        https://github.com/munin-monitoring/munin/pull/274.patch
 Patch12:        bz1049262-ntp_.patch
 Patch13:        mariadb-show-status.patch
 Patch14:        mariadb-innodb.patch
-Patch15:        https://patch-diff.githubusercontent.com/raw/munin-monitoring/munin/pull/737.patch
+#Patch15:        https://patch-diff.githubusercontent.com/raw/munin-monitoring/munin/pull/737.patch
 
 BuildArch:      noarch
 
@@ -344,7 +344,7 @@ rm -f plugins/node.d/memcached_.in
 %endif
 
 %patch4 -p0
-%patch5 -p0
+#% patch5 -p0
 #% patch7 -p1
 %patch9 -p1
 %patch10 -p1
@@ -352,7 +352,7 @@ rm -f plugins/node.d/memcached_.in
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
-%patch15 -p1
+#% patch15 -p1
 install -c %{SOURCE13} ./resources/
 
 # Create Makefile.config-dist
