@@ -1,6 +1,6 @@
 Name:           munin
-Version:        2.0.26
-Release:        4%{?dist}
+Version:        2.0.27
+Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -868,6 +868,9 @@ exit 0
 
 
 %changelog
+* Tue Nov 01 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.27-1
+- Upstream released 2.0.27
+
 * Tue Oct 11 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.26-4
 - BZ# 1383219 - user nginx is not required for cgi
 
