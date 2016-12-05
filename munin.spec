@@ -1,6 +1,6 @@
 Name:           munin
 Version:        2.0.28
-Release:        1%{?dist}
+Release:        1.1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
 Group:          System Environment/Daemons
@@ -50,6 +50,7 @@ Patch12:        bz1049262-ntp_.patch
 Patch13:        mariadb-show-status.patch
 Patch14:        mariadb-innodb.patch
 #Patch15:        https://patch-diff.githubusercontent.com/raw/munin-monitoring/munin/pull/737.patch
+Patch16:        0001-Revert-munin_stats-plugin-only-graph-munin-graph-if-.patch
 
 BuildArch:      noarch
 
@@ -353,6 +354,7 @@ rm -f plugins/node.d/memcached_.in
 %patch13 -p1
 %patch14 -p1
 #% patch15 -p1
+%patch16 -p1
 install -c %{SOURCE13} ./resources/
 
 # Create Makefile.config-dist
@@ -868,6 +870,9 @@ exit 0
 
 
 %changelog
+* Mon Dec 05 2016 "Yu Watanabe" <watanabe.yu@gmail.com> - 2.0.28-1.1
+- Revert ec3128b4be6511d589056b8c190eb7c414b52b0f (BZ# 1392279)
+
 * Mon Dec 05 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.28-1
 - Upstream released 2.0.28
 
