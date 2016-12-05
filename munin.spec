@@ -1,5 +1,5 @@
 Name:           munin
-Version:        2.0.27
+Version:        2.0.28
 Release:        1%{?dist}
 Summary:        Network-wide graphing framework (grapher/gatherer)
 
@@ -42,7 +42,7 @@ Patch4:         munin-2.0.4-Utils-cluck.patch
 #Patch6:         munin-2.0.7-http_loadtime.patch
 #Patch7:         munin-2.0-defect-1213.patch
 #Patch8:         munin-2.0.2-defect-1245-LimitsOld.pm-notify_alias.patch
-Patch9:         munin-2.0.8-cgitmp.patch
+#Patch9:         munin-2.0.8-cgitmp.patch
 # BZ# 877116 Patch using '&' in the URLs instead of '&amp;' in HTMLConfig
 Patch10:        munin-2.0.9_HTMLConfig.pm.patch
 Patch11:        https://github.com/munin-monitoring/munin/pull/274.patch
@@ -346,7 +346,7 @@ rm -f plugins/node.d/memcached_.in
 %patch4 -p0
 #% patch5 -p0
 #% patch7 -p1
-%patch9 -p1
+#% patch9 -p1
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
@@ -868,6 +868,9 @@ exit 0
 
 
 %changelog
+* Mon Dec 05 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.28-1
+- Upstream released 2.0.28
+
 * Tue Nov 01 2016 "D. Johnson" <fenris02@fedoraproject.org> - 2.0.27-1
 - Upstream released 2.0.27
 
